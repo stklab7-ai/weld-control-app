@@ -92,30 +92,45 @@ const UI = (() => {
   }
 
   /** Строит HTML одной карточки заявки */
-  function buildCardHtml(request, isActive) {
-    const statusClass = 'st-' + request.status.toLowerCase().replace(/\s+/g, '-');
-    return `
-      <div class="request-card type-${escapeHtml(request.controlType)} ${isActive ? 'active' : ''}" data-id="${request.id}">
-        <div class="rc-top">
-          <div>
-            <p class="rc-title">${escapeHtml(request.objectName)}</p>
-            <span class="rc-num">#${request.id}</span>
-          </div>
-          <button class="rc-del" data-id="${request.id}" title="Удалить заявку" type="button">
-            <i class="fa-solid fa-trash"></i>
-          </button>
-        </div>
-        <div class="rc-meta">
-          <span class="rc-type-badge type-${escapeHtml(request.controlType)}">
-            <i class="fa-solid ${typeIconClass(request.controlType)}"></i> ${escapeHtml(request.controlType)}
-          </span>
-          <span class="rc-status ${statusClass}">${escapeHtml(request.status)}</span>
-        </div>
-        <div class="rc-date"><i class="fa-regular fa-clock"></i>${formatDate(request.createdAt)} · ${escapeHtml(request.author)}</div>
-        <div class="rc-coords"><i class="fa-solid fa-location-dot"></i>${Number(request.latitude).toFixed(5)}, ${Number(request.longitude).toFixed(5)}</div>
-      </div>
-    `;
+function buildCardHtml(request, isActive) {
+  const statusClass = 'st-' + request.status.toLowerCase().replace(/\s+/g, '-');
+  const isApproved = request.approved === true;
+  const isRejected = request.approved === false;
+  
+  let verdictHtml = '';
+  if (isApproved) {
+    verdictHtml = `<span class="verdict approved"><i class="fa-solid fa-check"></i> ГОДЕН</span>`;
+  } else if (isRejected) {
+    verdictHtml = `<span class="verdict rejected"><i class="fa-solid fa-xmark"></i> НЕ ГОДЕН</span>`;
   }
+
+  return `
+    <div class="request-card type-${escapeHtml(request.controlType)} ${isActive ? 'active' : ''} ${isApproved ? 'approved' : ''} ${isRejected ? 'rejected' : ''}" data-id="${request.id}">
+      <div class="rc-top">
+        <div>
+          <p class="rc-title">${escapeHtml(request.objectName)}</p>
+          <span class="rc-num">#${request.id}</span>
+        </div>
+        <button class="rc-del" data-id="${request.id}" title="Удалить заявку" type="button">
+          <i class="fa-solid fa-trash"></i>
+        </button>
+      </div>
+      <div class="rc-meta">
+        <span class="rc-type-badge type-${escapeHtml(request.controlType)}">
+          <i class="fa-solid ${typeIconClass(request.controlType)}"></i> ${escapeHtml(request.controlType)}
+        </span>
+        <span class="rc-status ${statusClass}">${escapeHtml(request.status)}</span>
+        ${verdictHtml}
+      </div>
+      <div class="rc-date"><i class="fa-regular fa-clock"></i>${formatDate(request.createdAt)} · ${escapeHtml(request.author)}</div>
+      <div class="rc-coords"><i class="fa-solid fa-location-dot"></i>${Number(request.latitude).toFixed(5)}, ${Number(request.longitude).toFixed(5)}</div>
+      <div class="rc-actions">
+        <button class="btn-vote btn-approve" data-id="${request.id}" type="button"><i class="fa-solid fa-check"></i> Годен</button>
+        <button class="btn-vote btn-reject" data-id="${request.id}" type="button"><i class="fa-solid fa-xmark"></i> Не годен</button>
+      </div>
+    </div>
+  `;
+}
 
   /**
    * Рендерит список заявок с учётом фильтров.

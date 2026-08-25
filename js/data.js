@@ -1,130 +1,206 @@
 /**
- * data.js — работа с localStorage (CRUD для заявок и пользователя)
- *
- * Хранит:
- *  - "weld_requests"  — массив заявок
- *  - "weld_username"  — имя текущего пользователя
- *
- * Структура заявки:
- * {
- *   id: число,
- *   objectName: строка,
- *   controlType: "Вик" | "Узк" | "Рк" | "Цд",
- *   description: строка,
- *   contactPerson: строка,
- *   latitude: число,
- *   longitude: число,
- *   status: "Новая" | "В работе" | "Завершена",
- *   createdAt: строка (дата ISO),
- *   author: строка (имя пользователя)
- * }
+ * data.js — работа с данными (Firebase + localStorage)
  */
 
-const DataStore = (() => {
-  const STORAGE_KEY = 'weld_requests';
-  const USER_KEY = 'weld_username';
+import { 
+  requestsCollection,
+  addDoc,
+  getDocs,
+  updateDoc,
+  deleteDoc,
+  doc,
+  onSnapshot,
+  query,
+  orderBy
+} from './firebase.js';
 
-  /**
-   * Безопасно читает массив заявок из localStorage.
-   * При повреждённых данных возвращает пустой массив и не роняет приложение.
-   */
-  function getAll() {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return [];
-      const parsed = JSON.parse(raw);
-      return Array.isArray(parsed) ? parsed : [];
-    } catch (err) {
-      console.error('[DataStore] Ошибка чтения заявок из localStorage:', err);
-      return [];
-    }
+const STORAGE_KEY = 'weld_requests';
+const USER_KEY = 'weld_username';
+const USERS_KEY = 'weld_users';
+
+// ===== LOCALSTORAGE (кеш) =====
+function getAll() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
   }
+}
 
-  /** Сохраняет весь массив заявок */
-  function saveAll(requests) {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(requests));
-      return true;
-    } catch (err) {
-      console.error('[DataStore] Ошибка сохранения заявок в localStorage:', err);
-      return false;
-    }
+function saveAll(requests) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(requests));
+    return true;
+  } catch {
+    return false;
   }
+}
 
-  /** Возвращает заявку по id или null */
-  function getById(id) {
-    const requests = getAll();
-    return requests.find((r) => r.id === id) || null;
+function getById(id) {
+  const requests = getAll();
+  return requests.find((r) => r.id === id) || null;
+}
+
+// ===== FIREBASE (облако) =====
+
+/** Загружает все заявки из Firebase */
+async function loadFromFirebase() {
+  try {
+    const q = query(requestsCollection, orderBy('createdAt', 'desc'));
+    const snapshot = await getDocs(q);
+    const requests = [];
+    snapshot.forEach((doc) => {
+      requests.push({ id: doc.id, ...doc.data() });
+    });
+    saveAll(requests);
+    return requests;
+  } catch (err) {
+    console.error('[Firebase] Ошибка загрузки:', err);
+    return [];
   }
+}
 
-  /** Создаёт новую заявку, присваивает уникальный id, сохраняет и возвращает её */
-  function create(data) {
-    const requests = getAll();
-    const newRequest = {
-      id: Date.now(),
-      objectName: (data.objectName || '').trim(),
-      controlType: data.controlType,
-      description: (data.description || '').trim(),
-      contactPerson: (data.contactPerson || '').trim(),
-      latitude: Number(data.latitude),
-      longitude: Number(data.longitude),
-      status: data.status || 'Новая',
+/** Создаёт заявку в Firebase */
+async function createInFirebase(data) {
+  try {
+    const docRef = await addDoc(requestsCollection, {
+      ...data,
       createdAt: data.createdAt || new Date().toISOString(),
-      author: data.author || 'Неизвестный автор',
-    };
+      approved: data.approved !== undefined ? data.approved : null
+    });
+    const newRequest = { id: docRef.id, ...data };
+    const requests = getAll();
     requests.push(newRequest);
     saveAll(requests);
     return newRequest;
+  } catch (err) {
+    console.error('[Firebase] Ошибка создания:', err);
+    throw err;
   }
+}
 
-  /** Обновляет заявку по id, возвращает обновлённую заявку или null если не найдена */
-  function update(id, patch) {
+/** Обновляет заявку в Firebase */
+async function updateInFirebase(id, patch) {
+  try {
+    const docRef = doc(requestsCollection, id);
+    await updateDoc(docRef, patch);
     const requests = getAll();
     const idx = requests.findIndex((r) => r.id === id);
-    if (idx === -1) return null;
-    requests[idx] = { ...requests[idx], ...patch };
+    if (idx !== -1) {
+      requests[idx] = { ...requests[idx], ...patch };
+      saveAll(requests);
+    }
+    return { id, ...patch };
+  } catch (err) {
+    console.error('[Firebase] Ошибка обновления:', err);
+    throw err;
+  }
+}
+
+/** Удаляет заявку из Firebase */
+async function removeFromFirebase(id) {
+  try {
+    const docRef = doc(requestsCollection, id);
+    await deleteDoc(docRef);
+    const requests = getAll().filter((r) => r.id !== id);
     saveAll(requests);
-    return requests[idx];
+    return true;
+  } catch (err) {
+    console.error('[Firebase] Ошибка удаления:', err);
+    return false;
   }
+}
 
-  /** Удаляет заявку по id, возвращает true если удалена */
-  function remove(id) {
-    const requests = getAll();
-    const filtered = requests.filter((r) => r.id !== id);
-    const removed = filtered.length !== requests.length;
-    if (removed) saveAll(filtered);
-    return removed;
-  }
+/** Подписка на обновления в реальном времени */
+function subscribeToFirebase(callback) {
+  const q = query(requestsCollection, orderBy('createdAt', 'desc'));
+  return onSnapshot(q, (snapshot) => {
+    const requests = [];
+    snapshot.forEach((doc) => {
+      requests.push({ id: doc.id, ...doc.data() });
+    });
+    saveAll(requests);
+    if (callback) callback(requests);
+  }, (error) => {
+    console.error('[Firebase] Ошибка подписки:', error);
+  });
+}
 
-  /** Возвращает имя пользователя или null */
-  function getUsername() {
-    try {
-      return localStorage.getItem(USER_KEY);
-    } catch (err) {
-      console.error('[DataStore] Ошибка чтения имени пользователя:', err);
-      return null;
+// ===== УПРАВЛЕНИЕ ПОЛЬЗОВАТЕЛЯМИ =====
+function getUsers() {
+  try {
+    const raw = localStorage.getItem(USERS_KEY);
+    if (!raw) {
+      const defaultUsers = { 
+        admin: { password: 'admin123', role: 'admin' },
+        user: { password: 'user123', role: 'user' }
+      };
+      saveUsers(defaultUsers);
+      return defaultUsers;
     }
+    return JSON.parse(raw);
+  } catch { 
+    return { admin: { password: 'admin123', role: 'admin' } };
   }
+}
 
-  /** Сохраняет имя пользователя */
-  function setUsername(name) {
-    try {
-      localStorage.setItem(USER_KEY, name);
-      return true;
-    } catch (err) {
-      console.error('[DataStore] Ошибка сохранения имени пользователя:', err);
-      return false;
-    }
+function saveUsers(users) {
+  localStorage.setItem(USERS_KEY, JSON.stringify(users));
+}
+
+function authenticate(login, password) {
+  const users = getUsers();
+  if (users[login] && users[login].password === password) {
+    return users[login];
   }
+  return null;
+}
 
-  return {
-    getAll,
-    saveAll,
-    getById,
-    create,
-    update,
-    remove,
-    getUsername,
-    setUsername,
-  };
-})();
+function registerUser(login, password, role = 'user') {
+  const users = getUsers();
+  if (users[login]) return false;
+  users[login] = { password, role };
+  saveUsers(users);
+  return true;
+}
+
+function getUsername() {
+  try {
+    return localStorage.getItem(USER_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function setUsername(name) {
+  try {
+    localStorage.setItem(USER_KEY, name);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// ===== ЭКСПОРТ =====
+export {
+  // localStorage
+  getAll,
+  saveAll,
+  getById,
+  // Firebase
+  loadFromFirebase,
+  createInFirebase,
+  updateInFirebase,
+  removeFromFirebase,
+  subscribeToFirebase,
+  // Пользователи
+  getUsers,
+  saveUsers,
+  authenticate,
+  registerUser,
+  getUsername,
+  setUsername
+};

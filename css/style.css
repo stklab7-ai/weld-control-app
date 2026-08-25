@@ -714,3 +714,58 @@ select option { background: #12141f; color: var(--text-main); }
   .app-main { padding: 8px; gap: 8px; }
   .panel-list, .panel-form { max-height: 46vh; }
 }
+/* Вердикты */
+.verdict {
+  font-weight: 700;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+.verdict.approved {
+  color: var(--color-vik);
+  background: rgba(0,255,136,0.15);
+  border: 1px solid var(--color-vik);
+}
+.verdict.rejected {
+  color: var(--color-uzk);
+  background: rgba(255,107,107,0.15);
+  border: 1px solid var(--color-uzk);
+}
+
+/* Серая карточка для годных */
+.request-card.approved {
+  opacity: 0.5;
+  background: rgba(255,255,255,0.02);
+}
+.request-card.approved .rc-title {
+  color: var(--text-faint);
+}
+/* Красная карточка для не годных */
+.request-card.rejected {
+  border-left-color: var(--color-uzk) !important;
+  background: rgba(255,107,107,0.08);
+}
+
+/* Кнопки голосования */
+.rc-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+.btn-vote {
+  flex: 1;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--panel-border);
+  background: rgba(255,255,255,0.04);
+  color: var(--text-dim);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.btn-vote:hover { background: rgba(255,255,255,0.08); }
+.btn-approve:hover { border-color: var(--color-vik); color: var(--color-vik); }
+.btn-reject:hover { border-color: var(--color-uzk); color: var(--color-uzk); }
+.btn-approve:active { background: rgba(0,255,136,0.15); }
+.btn-reject:active { background: rgba(255,107,107,0.15); }

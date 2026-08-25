@@ -1,28 +1,31 @@
 /**
  * app.js — основная логика приложения "Сварочный контроль"
- *
- * Связывает вместе:
- *  - DataStore (js/data.js)  — хранение заявок
- *  - MapModule (js/map.js)   — карта Leaflet
- *  - UI (js/ui.js)           — интерфейс, форма, список, модалки
- *
- * Основной сценарий:
- *  1. Пользователь вводит имя (при первом запуске)
- *  2. Клик по карте создаёт/перемещает точку новой заявки
- *  3. Форма заполняется и заявка сохраняется в localStorage
- *  4. Список и карта синхронизируются с данными
  */
+
+import { 
+  loadFromFirebase,
+  createInFirebase,
+  updateInFirebase,
+  removeFromFirebase,
+  subscribeToFirebase,
+  getAll,
+  getById,
+  getUsername,
+  setUsername,
+  authenticate,
+  registerUser
+} from './data.js';
 
 const App = (() => {
   let currentUser = null;
-  let activeRequestId = null; // id заявки, выбранной в списке / редактируемой в форме
-  let isCreatingNew = false; // true, если форма находится в режиме "новая заявка, ожидание клика по карте"
+  let activeRequestId = null;
+  let isCreatingNew = false;
 
   /** Точка входа приложения */
-  function init() {
+  async function init() {
     UI.cacheElements();
 
-    // Инициализация карты (центр — Москва, если геолокация недоступна)
+    // Инициализация карты
     MapModule.init('map', { center: [55.751244, 37.618423], zoom: 11 });
 
     MapModule.setHandlers({
@@ -35,26 +38,57 @@ const App = (() => {
     bindUIEvents();
     UI.bindConfirmDeleteButtons();
 
-    checkUsername();
-    refreshAll();
+    // Загрузка данных из Firebase
+    try {
+      await loadFromFirebase();
+      UI.showToast('Данные загружены из облака', 'success');
+    } catch (err) {
+      UI.showToast('Используем локальные данные', 'info');
+    }
 
-    console.log('[App] Приложение "Сварочный контроль" запущено');
+    // Подписка на обновления в реальном времени
+    subscribeToFirebase((requests) => {
+      refreshAll();
+      UI.showToast('Данные обновлены', 'info');
+    });
+
+    // Проверка входа
+    checkLogin();
+
+    console.log('[App] Приложение запущено с Firebase');
   }
 
-  /** Проверяет наличие сохранённого имени пользователя, иначе показывает модалку */
-  function checkUsername() {
-    const saved = DataStore.getUsername();
-    if (saved) {
-      currentUser = saved;
-      UI.setUserBadge(saved);
-    } else {
-      UI.showUserModal();
+  /** Проверяет, авторизован ли пользователь */
+  function checkLogin() {
+    const saved = sessionStorage.getItem('weld_logged_in');
+    if (saved === 'true') {
+      const username = getUsername();
+      if (username) {
+        currentUser = username;
+        UI.setUserBadge(username);
+        document.getElementById('modal-login').classList.remove('show');
+        document.getElementById('app').style.display = 'flex';
+        refreshAll();
+        return;
+      }
     }
+    // Показываем модалку входа
+    document.getElementById('modal-login').classList.add('show');
+    document.getElementById('app').style.display = 'none';
   }
 
   /** Привязывает обработчики к элементам интерфейса */
   function bindUIEvents() {
     const el = UI.els;
+
+    // --- Вход ---
+    document.getElementById('btn-login').addEventListener('click', handleLogin);
+    document.getElementById('login-password').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') handleLogin();
+    });
+    document.getElementById('login-username').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') handleLogin();
+    });
 
     // --- Модалка имени пользователя ---
     el.btnSaveUsername.addEventListener('click', saveUsername);
@@ -74,7 +108,7 @@ const App = (() => {
     el.form.addEventListener('submit', handleFormSubmit);
     el.btnCancelEdit.addEventListener('click', handleCancelEdit);
 
-    // --- Список заявок (делегирование событий на карточках) ---
+    // --- Список заявок ---
     el.requestsList.addEventListener('click', handleListClick);
 
     // --- Кнопки карты ---
@@ -85,6 +119,31 @@ const App = (() => {
     document.getElementById('btn-export').addEventListener('click', handleExport);
   }
 
+  /** Обработчик входа */
+  function handleLogin() {
+    const login = document.getElementById('login-username').value.trim();
+    const password = document.getElementById('login-password').value.trim();
+    
+    if (!login || !password) {
+      UI.showToast('Введите логин и пароль', 'error');
+      return;
+    }
+
+    const user = authenticate(login, password);
+    if (user) {
+      sessionStorage.setItem('weld_logged_in', 'true');
+      setUsername(login);
+      currentUser = login;
+      UI.setUserBadge(login);
+      document.getElementById('modal-login').classList.remove('show');
+      document.getElementById('app').style.display = 'flex';
+      UI.showToast(`Добро пожаловать, ${login}!`, 'success');
+      refreshAll();
+    } else {
+      UI.showToast('Неверный логин или пароль', 'error');
+    }
+  }
+
   /** Сохраняет имя пользователя из модалки */
   function saveUsername() {
     const name = UI.els.inputUsername.value.trim();
@@ -93,26 +152,25 @@ const App = (() => {
       return;
     }
     currentUser = name;
-    DataStore.setUsername(name);
+    setUsername(name);
     UI.setUserBadge(name);
     UI.hideUserModal();
     UI.showToast(`Добро пожаловать, ${name}!`, 'success');
-    // Обновляем поле "Автор" в форме, если она открыта
     UI.els.fAuthor.value = currentUser;
   }
 
-  /** Перерисовывает список заявок и синхронизирует видимость маркеров на карте */
+  /** Перерисовывает список заявок */
   function refreshList() {
-    const requests = DataStore.getAll();
+    const requests = getAll();
     const filters = UI.getFilters();
     const filtered = UI.renderList(requests, filters, activeRequestId);
     const visibleIds = new Set(filtered.map((r) => r.id));
     MapModule.setMarkerVisibility(requests, visibleIds);
   }
 
-  /** Полное обновление: список + все маркеры на карте */
+  /** Полное обновление */
   function refreshAll() {
-    const requests = DataStore.getAll();
+    const requests = getAll();
     MapModule.renderAll(requests);
     refreshList();
   }
@@ -121,23 +179,17 @@ const App = (() => {
   // Обработчики карты
   // ==========================================================================
 
-  /** Клик по карте в пустом месте */
   function handleMapClick(lat, lng) {
     if (activeRequestId !== null && !isCreatingNew) {
-      // Есть активная заявка в режиме редактирования — обновляем её координаты
-      const request = DataStore.getById(activeRequestId);
+      const request = getById(activeRequestId);
       if (request) {
         UI.setFormCoords(lat, lng);
-        const updated = DataStore.update(activeRequestId, { latitude: lat, longitude: lng });
-        if (updated) {
-          MapModule.updateMarker(updated);
-          UI.showToast('Координаты заявки обновлены', 'info');
-        }
+        updateInFirebase(activeRequestId, { latitude: lat, longitude: lng });
+        UI.showToast('Координаты заявки обновлены', 'info');
       }
       return;
     }
 
-    // Иначе — начинаем создание новой заявки в этой точке
     isCreatingNew = true;
     activeRequestId = null;
     UI.resetForm(currentUser);
@@ -147,20 +199,15 @@ const App = (() => {
     UI.showToast('Точка выбрана. Заполните форму заявки справа.', 'info');
   }
 
-  /** Перетаскивание маркера завершено — обновляем координаты заявки */
   function handleMarkerDragEnd(id, lat, lng) {
-    const updated = DataStore.update(id, { latitude: lat, longitude: lng });
-    if (updated) {
-      MapModule.updateMarker(updated);
-      if (activeRequestId === id) {
-        UI.setFormCoords(lat, lng);
-      }
-      refreshList();
-      UI.showToast('Маркер перемещён, координаты сохранены', 'success');
+    updateInFirebase(id, { latitude: lat, longitude: lng });
+    if (activeRequestId === id) {
+      UI.setFormCoords(lat, lng);
     }
+    refreshList();
+    UI.showToast('Маркер перемещён, координаты сохранены', 'success');
   }
 
-  /** Клик "Мое местоположение" */
   function handleGeoLocate() {
     UI.showToast('Определяем местоположение...', 'info');
     MapModule.locateUser(
@@ -169,7 +216,6 @@ const App = (() => {
     );
   }
 
-  /** Кнопка "Новая заявка" — просто напоминает кликнуть по карте */
   function handleStartNewRequest() {
     isCreatingNew = true;
     activeRequestId = null;
@@ -183,8 +229,7 @@ const App = (() => {
   // Обработчики формы
   // ==========================================================================
 
-  /** Отправка формы (создание или обновление заявки) */
-  function handleFormSubmit(e) {
+  async function handleFormSubmit(e) {
     e.preventDefault();
     const data = UI.getFormData();
     const validation = UI.validateForm(data);
@@ -197,20 +242,16 @@ const App = (() => {
     try {
       if (activeRequestId !== null && !isCreatingNew) {
         // Режим обновления
-        const updated = DataStore.update(activeRequestId, data);
-        if (updated) {
-          MapModule.updateMarker(updated);
-          UI.showToast('Заявка обновлена', 'success');
-          refreshList();
-        } else {
-          UI.showToast('Не удалось найти заявку для обновления', 'error');
-        }
+        await updateInFirebase(activeRequestId, data);
+        UI.showToast('Заявка обновлена', 'success');
+        refreshList();
       } else {
         // Режим создания
-        const newRequest = DataStore.create({
+        const newRequest = await createInFirebase({
           ...data,
           createdAt: new Date().toISOString(),
           author: currentUser || 'Неизвестный автор',
+          approved: null
         });
         MapModule.addMarker(newRequest);
         UI.showToast(`Заявка «${newRequest.objectName}» создана`, 'success');
@@ -227,7 +268,6 @@ const App = (() => {
     }
   }
 
-  /** Отмена редактирования — возврат формы в состояние "новая заявка" */
   function handleCancelEdit() {
     activeRequestId = null;
     isCreatingNew = false;
@@ -235,9 +275,8 @@ const App = (() => {
     UI.highlightCard(null);
   }
 
-  /** Открывает заявку в форме для редактирования (из карточки, попапа, dbl-click) */
   function handleEditRequest(id) {
-    const request = DataStore.getById(id);
+    const request = getById(id);
     if (!request) {
       UI.showToast('Заявка не найдена', 'error');
       return;
@@ -253,31 +292,56 @@ const App = (() => {
   // Обработчики списка заявок
   // ==========================================================================
 
-  /** Делегированный обработчик кликов по списку заявок */
   function handleListClick(e) {
     const delBtn = e.target.closest('.rc-del');
     if (delBtn) {
       e.stopPropagation();
-      const id = Number(delBtn.dataset.id);
-      const request = DataStore.getById(id);
+      const id = String(delBtn.dataset.id);
+      const request = getById(id);
       if (request) {
         UI.showConfirmDelete(request, handleDeleteRequest);
       }
       return;
     }
 
+    // Кнопки "Годен" / "Не годен"
+    const voteBtn = e.target.closest('.btn-vote');
+    if (voteBtn) {
+      e.stopPropagation();
+      const id = String(voteBtn.dataset.id);
+      const value = voteBtn.classList.contains('btn-approve');
+      handleVoteClick(id, value);
+      return;
+    }
+
     const card = e.target.closest('.request-card');
     if (card) {
-      const id = Number(card.dataset.id);
+      const id = String(card.dataset.id);
       handleEditRequest(id);
     }
   }
 
-  /** Выполняет удаление заявки после подтверждения */
-  function handleDeleteRequest(id) {
-    const removed = DataStore.remove(id);
-    if (removed) {
-      MapModule.removeMarker(id);
+  /** Обработчик голосования */
+  async function handleVoteClick(id, value) {
+    const request = getById(id);
+    if (!request) return;
+
+    try {
+      await updateInFirebase(id, {
+        approved: value,
+        status: value ? 'Завершена' : 'В работе'
+      });
+      refreshList();
+      UI.showToast(value ? '✅ Заявка признана ГОДНОЙ' : '❌ Заявка признана НЕ ГОДНОЙ', value ? 'success' : 'error');
+    } catch (err) {
+      UI.showToast('Ошибка при голосовании', 'error');
+    }
+  }
+
+  /** Выполняет удаление заявки */
+  async function handleDeleteRequest(id) {
+    try {
+      await removeFromFirebase(id);
       if (activeRequestId === id) {
         activeRequestId = null;
         isCreatingNew = false;
@@ -285,7 +349,7 @@ const App = (() => {
       }
       refreshList();
       UI.showToast('Заявка удалена', 'success');
-    } else {
+    } catch (err) {
       UI.showToast('Не удалось удалить заявку', 'error');
     }
   }
@@ -294,10 +358,9 @@ const App = (() => {
   // Экспорт данных
   // ==========================================================================
 
-  /** Экспортирует все заявки в JSON-файл для скачивания */
   function handleExport() {
     try {
-      const requests = DataStore.getAll();
+      const requests = getAll();
       if (requests.length === 0) {
         UI.showToast('Нет заявок для экспорта', 'error');
         return;
@@ -322,12 +385,12 @@ const App = (() => {
   return { init };
 })();
 
-// Запуск приложения после загрузки DOM
+// Запуск приложения
 document.addEventListener('DOMContentLoaded', () => {
   try {
     App.init();
   } catch (err) {
-    console.error('[App] Критическая ошибка запуска приложения:', err);
-    alert('Не удалось запустить приложение. Подробности в консоли разработчика (F12).');
+    console.error('[App] Критическая ошибка:', err);
+    alert('Не удалось запустить приложение. Подробности в консоли (F12).');
   }
 });
