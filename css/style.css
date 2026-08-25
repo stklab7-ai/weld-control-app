@@ -803,7 +803,13 @@ select option { background: #12141f; color: var(--text-main); }
   box-shadow: 0 0 30px rgba(0, 212, 255, 0.4) !important;
 }
 
-/* Стиль карты в свёрнутом состоянии */
+/* ===== КАРТА: СВЁРНУТА ПО УМОЛЧАНИЮ ===== */
+.panel-map {
+  position: relative !important;
+  transition: all 0.3s ease !important;
+}
+
+/* Свёрнутое состояние */
 .panel-map.collapsed {
   flex: 0 0 0 !important;
   min-width: 0 !important;
@@ -813,37 +819,41 @@ select option { background: #12141f; color: var(--text-main); }
   margin: 0 !important;
   padding: 0 !important;
   opacity: 0 !important;
-  transition: all 0.3s ease !important;
+  pointer-events: none !important;
 }
 .panel-map.collapsed #map {
   display: none !important;
 }
+.panel-map.collapsed .map-hint {
+  display: none !important;
+}
+.panel-map.collapsed .map-controls {
+  display: none !important;
+}
 
-/* Стиль карты в развёрнутом состоянии */
+/* Развёрнутое состояние */
 .panel-map:not(.collapsed) {
   flex: 1 1 50% !important;
   min-width: 300px !important;
   opacity: 1 !important;
-  transition: all 0.3s ease !important;
+  pointer-events: auto !important;
 }
 .panel-map:not(.collapsed) #map {
   display: block !important;
   width: 100% !important;
   height: 100% !important;
 }
+.panel-map:not(.collapsed) .map-hint {
+  display: flex !important;
+}
+.panel-map:not(.collapsed) .map-controls {
+  display: flex !important;
+}
 
-/* Кнопка-стрелка меняет направление */
+/* Стрелка кнопки меняет направление */
 .panel-map.collapsed #map-toggle-btn i {
   transform: rotate(0deg) !important;
 }
 .panel-map:not(.collapsed) #map-toggle-btn i {
   transform: rotate(180deg) !important;
-}
-
-/* Скрываем подсказку и элементы управления, когда карта свёрнута */
-.panel-map.collapsed .map-hint {
-  display: none !important;
-}
-.panel-map.collapsed .map-controls {
-  display: none !important;
 }

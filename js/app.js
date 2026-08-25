@@ -141,8 +141,9 @@ const App = (() => {
       icon.className = 'fa-solid fa-chevron-left';
       // При разворачивании обновляем размер карты
       setTimeout(() => {
-        if (window.map) {
-          window.map.invalidateSize();
+        const map = MapModule.getMap();
+        if (map) {
+          map.invalidateSize();
         }
       }, 300);
       UI.showToast('Карта показана', 'info');
@@ -270,10 +271,11 @@ const App = (() => {
     }
 
     // ===== ЕСЛИ КООРДИНАТЫ НЕ ЗАДАНЫ — СТАВИМ ПО УМОЛЧАНИЮ =====
-    if (isNaN(data.latitude) || isNaN(data.longitude) || data.latitude === 0 || data.longitude === 0) {
+    if (isNaN(data.latitude) || data.latitude === 0 || data.latitude === null || data.latitude === undefined) {
       data.latitude = 55.751244;
+    }
+    if (isNaN(data.longitude) || data.longitude === 0 || data.longitude === null || data.longitude === undefined) {
       data.longitude = 37.618423;
-      UI.showToast('Координаты не указаны, установлены по умолчанию (Москва)', 'info');
     }
 
     try {

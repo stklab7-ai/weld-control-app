@@ -189,7 +189,7 @@ function validateForm(data) {
   if (!data.controlType) {
     return { valid: false, message: 'Выберите тип контроля' };
   }
-  // Координаты теперь НЕОБЯЗАТЕЛЬНЫЕ
+  // Координаты НЕ проверяем — они необязательны!
   return { valid: true };
 }
 
