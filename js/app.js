@@ -14,13 +14,7 @@ import {
   getUsername,
   setUsername,
   authenticate,
-  registerUser,
-  loadUsersFromFirebase,
-  subscribeToUsers,
-  getAllUsers,
-  saveUserToFirebase,
-  deleteUserFromFirebase,
-  authenticateUser
+  registerUser
 } from './data.js';
 
 import { UI } from './ui.js';
@@ -35,19 +29,6 @@ const App = (() => {
     UI.cacheElements();
     bindUIEvents();
     UI.bindConfirmDeleteButtons();
-
-    // Загрузка пользователей из Firebase
-    try {
-      await loadUsersFromFirebase();
-      console.log('[App] Пользователи загружены из Firebase');
-    } catch (err) {
-      console.warn('[App] Используем локальных пользователей');
-    }
-
-    // Подписка на обновления пользователей
-    subscribeToUsers((users) => {
-      console.log('[App] Пользователи обновлены:', Object.keys(users));
-    });
 
     // Загрузка данных из Firebase
     try {
@@ -107,12 +88,25 @@ const App = (() => {
     });
     el.btnChangeUser.addEventListener('click', () => UI.showUserModal(currentUser));
 
+    // --- Поиск (выдвижная панель) ---
+    document.getElementById('btn-search-toggle').addEventListener('click', () => {
+      const bar = document.getElementById('search-bar');
+      bar.classList.toggle('active');
+      if (bar.classList.contains('active')) {
+        document.getElementById('search-input').focus();
+      }
+    });
+    document.getElementById('search-close').addEventListener('click', () => {
+      document.getElementById('search-bar').classList.remove('active');
+      document.getElementById('search-input').value = '';
+      refreshList();
+    });
+
     // --- Поиск и фильтры ---
     el.searchInput.addEventListener('input', refreshList);
     el.filterBox.querySelectorAll('input[type="checkbox"]').forEach((cb) => {
       cb.addEventListener('change', refreshList);
     });
-    el.statusFilter.addEventListener('change', refreshList);
 
     // --- Форма заявки ---
     el.form.addEventListener('submit', handleFormSubmit);
@@ -123,13 +117,6 @@ const App = (() => {
 
     // --- Экспорт JSON ---
     document.getElementById('btn-export').addEventListener('click', handleExport);
-
-    // --- Админ-панель ---
-    document.getElementById('btn-admin').addEventListener('click', openAdminPanel);
-    document.getElementById('admin-add-user').addEventListener('click', adminAddUser);
-    document.getElementById('admin-close').addEventListener('click', () => {
-      document.getElementById('modal-admin').classList.remove('show');
-    });
   }
 
   /** Обработчик входа */
@@ -176,89 +163,13 @@ const App = (() => {
   function refreshList() {
     const requests = getAll();
     const filters = UI.getFilters();
-    UI.renderList(requests, filters, activeRequestId);
+    const filtered = UI.renderList(requests, filters, activeRequestId);
   }
 
   /** Полное обновление */
   function refreshAll() {
+    const requests = getAll();
     refreshList();
-  }
-
-  // ==========================================================================
-  // АДМИН-ПАНЕЛЬ
-  // ==========================================================================
-
-  function openAdminPanel() {
-    renderUsersList();
-    document.getElementById('modal-admin').classList.add('show');
-  }
-
-  function renderUsersList() {
-    const users = JSON.parse(localStorage.getItem('weld_users') || '{}');
-    const container = document.getElementById('admin-users-list');
-    
-    if (Object.keys(users).length === 0) {
-      container.innerHTML = '<p style="text-align:center;color:var(--text-faint);padding:20px;">Нет пользователей</p>';
-      return;
-    }
-    
-    container.innerHTML = Object.entries(users).map(([login, data]) => `
-      <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 8px; border-bottom:1px solid var(--panel-border);">
-        <div>
-          <strong>${login}</strong> 
-          <span style="color:var(--text-dim); font-size:11px;">(${data.role || 'user'})</span>
-        </div>
-        <button class="btn-admin-delete" data-login="${login}" style="background:none; border:none; color:var(--color-uzk); cursor:pointer; padding:4px 8px; border-radius:4px; transition:all 0.2s;">
-          <i class="fa-solid fa-trash"></i>
-        </button>
-      </div>
-    `).join('');
-    
-    // Обработчики удаления
-    container.querySelectorAll('.btn-admin-delete').forEach(btn => {
-      btn.addEventListener('click', async () => {
-        const login = btn.dataset.login;
-        if (login === 'admin') {
-          UI.showToast('Нельзя удалить администратора', 'error');
-          return;
-        }
-        if (confirm(`Удалить пользователя ${login}?`)) {
-          const success = await deleteUserFromFirebase(login);
-          if (success) {
-            renderUsersList();
-            UI.showToast(`Пользователь ${login} удалён`, 'success');
-          } else {
-            UI.showToast('Ошибка удаления пользователя', 'error');
-          }
-        }
-      });
-    });
-  }
-
-  async function adminAddUser() {
-    const login = document.getElementById('admin-new-login').value.trim();
-    const password = document.getElementById('admin-new-password').value.trim();
-    const role = document.getElementById('admin-new-role').value;
-    
-    if (!login || !password) {
-      UI.showToast('Введите логин и пароль', 'error');
-      return;
-    }
-    
-    if (login.length < 3) {
-      UI.showToast('Логин должен быть не менее 3 символов', 'error');
-      return;
-    }
-    
-    const success = await saveUserToFirebase(login, { password, role });
-    if (success) {
-      document.getElementById('admin-new-login').value = '';
-      document.getElementById('admin-new-password').value = '';
-      renderUsersList();
-      UI.showToast(`Пользователь ${login} добавлен`, 'success');
-    } else {
-      UI.showToast('Ошибка добавления пользователя', 'error');
-    }
   }
 
   // ==========================================================================
@@ -275,6 +186,7 @@ const App = (() => {
       return;
     }
 
+    // ===== ЕСЛИ КООРДИНАТЫ НЕ ЗАДАНЫ — СТАВИМ ПО УМОЛЧАНИЮ =====
     if (isNaN(data.latitude) || data.latitude === 0 || data.latitude === null || data.latitude === undefined) {
       data.latitude = 55.751244;
     }
@@ -284,10 +196,12 @@ const App = (() => {
 
     try {
       if (activeRequestId !== null && !isCreatingNew) {
+        // Режим обновления
         await updateInFirebase(activeRequestId, data);
         UI.showToast('Заявка обновлена', 'success');
         refreshList();
       } else {
+        // Режим создания
         const newRequest = await createInFirebase({
           ...data,
           createdAt: new Date().toISOString(),
@@ -342,6 +256,7 @@ const App = (() => {
       return;
     }
 
+    // Кнопки "Годен" / "Не годен"
     const voteBtn = e.target.closest('.btn-vote');
     if (voteBtn) {
       e.stopPropagation();
@@ -358,6 +273,7 @@ const App = (() => {
     }
   }
 
+  /** Обработчик голосования */
   async function handleVoteClick(id, value) {
     const request = getById(id);
     if (!request) return;
@@ -374,6 +290,7 @@ const App = (() => {
     }
   }
 
+  /** Выполняет удаление заявки */
   async function handleDeleteRequest(id) {
     try {
       await removeFromFirebase(id);
