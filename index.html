@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Сварочный контроль — Подача заявок</title>
+
+<!-- Leaflet CSS (CDN) -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<!-- Font Awesome (CDN) -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+<!-- Google Fonts: техногенный стиль -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="app">
+
+  <!-- ===== Заголовок ===== -->
+  <header class="app-header">
+    <div class="header-left">
+      <i class="fa-solid fa-bolt logo-icon"></i>
+      <div class="header-title">
+        <h1>СВАРОЧНЫЙ<span>КОНТРОЛЬ</span></h1>
+        <p class="header-sub">Система подачи заявок на контроль сварных соединений</p>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="stats-badge" title="Всего заявок">
+        <i class="fa-solid fa-layer-group"></i>
+        <span id="stat-total">0</span>
+      </div>
+      <div class="user-badge" id="user-badge">
+        <i class="fa-solid fa-user-astronaut"></i>
+        <span id="user-name">—</span>
+        <button id="btn-change-user" title="Сменить пользователя" type="button"><i class="fa-solid fa-pen"></i></button>
+      </div>
+    </div>
+  </header>
+  <!-- ===== Основная разметка: 3 колонки ===== -->
+  <main class="app-main">
+
+    <!-- ===== ЛЕВАЯ ПАНЕЛЬ: список заявок ===== -->
+    <aside class="panel panel-list">
+      <div class="panel-header">
+        <h2><i class="fa-solid fa-list-check"></i> Заявки на контроль</h2>
+        <div class="type-counters" id="type-counters">
+          <span class="tc tc-vik" data-type="Вик"><i class="fa-solid fa-eye"></i> <b id="cnt-vik">0</b></span>
+          <span class="tc tc-uzk" data-type="Узк"><i class="fa-solid fa-wave-square"></i> <b id="cnt-uzk">0</b></span>
+          <span class="tc tc-rk" data-type="Рк"><i class="fa-solid fa-radiation"></i> <b id="cnt-rk">0</b></span>
+          <span class="tc tc-cd" data-type="Цд"><i class="fa-solid fa-magnifying-glass"></i> <b id="cnt-cd">0</b></span>
+        </div>
+      </div>
+
+      <div class="search-box">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" id="search-input" placeholder="Поиск по объекту...">
+      </div>
+
+      <div class="filter-box" id="filter-box">
+        <label class="chip chip-vik"><input type="checkbox" value="Вик" checked><span>Вик</span></label>
+        <label class="chip chip-uzk"><input type="checkbox" value="Узк" checked><span>Узк</span></label>
+        <label class="chip chip-rk"><input type="checkbox" value="Рк" checked><span>Рк</span></label>
+        <label class="chip chip-cd"><input type="checkbox" value="Цд" checked><span>Цд</span></label>
+      </div>
+
+      <div class="status-filter-box">
+        <select id="status-filter">
+          <option value="">Все статусы</option>
+          <option value="Новая">Новая</option>
+          <option value="В работе">В работе</option>
+          <option value="Завершена">Завершена</option>
+        </select>
+      </div>
+
+      <div class="requests-list" id="requests-list">
+        <!-- Карточки заявок генерируются JS -->
+        <div class="empty-state" id="empty-state">
+          <i class="fa-solid fa-inbox"></i>
+          <p>Пока нет заявок.<br>Кликните по карте, чтобы создать первую.</p>
+        </div>
+      </div>
+
+      <button class="btn btn-export" id="btn-export" type="button">
+        <i class="fa-solid fa-file-export"></i> Экспорт JSON
+      </button>
+    </aside>
+
+    <!-- ===== ЦЕНТРАЛЬНАЯ ПАНЕЛЬ: карта ===== -->
+    <section class="panel panel-map">
+      <div id="map"></div>
+
+      <div class="map-controls">
+        <button class="map-btn" id="btn-geo" title="Мое местоположение" type="button">
+          <i class="fa-solid fa-location-crosshairs"></i>
+        </button>
+        <button class="map-btn" id="btn-new-request" title="Новая заявка (клик по карте)" type="button">
+          <i class="fa-solid fa-plus"></i>
+        </button>
+      </div>
+
+      <div class="map-hint" id="map-hint">
+        <i class="fa-solid fa-circle-info"></i>
+        <span>Кликните по карте, чтобы указать точку контроля</span>
+      </div>
+    </section>
+
+    <!-- ===== ПРАВАЯ ПАНЕЛЬ: форма заявки ===== -->
+    <aside class="panel panel-form">
+      <div class="panel-header">
+        <h2 id="form-title"><i class="fa-solid fa-file-pen"></i> Новая заявка</h2>
+      </div>
+
+      <form id="request-form" autocomplete="off">
+        <div class="form-group">
+          <label for="f-objectName"><i class="fa-solid fa-industry"></i> Название объекта *</label>
+          <input type="text" id="f-objectName" required placeholder="Например: Трубопровод №4, участок 12">
+        </div>
+
+        <div class="form-group">
+          <label for="f-controlType"><i class="fa-solid fa-magnifying-glass-chart"></i> Тип контроля *</label>
+          <select id="f-controlType" required>
+            <option value="Вик">Вик — Визуальный и измерительный</option>
+            <option value="Узк">Узк — Ультразвуковой</option>
+            <option value="Рк">Рк — Радиографический</option>
+            <option value="Цд">Цд — Цветная дефектоскопия</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="f-description"><i class="fa-solid fa-align-left"></i> Описание работ</label>
+          <textarea id="f-description" rows="3" placeholder="Краткое описание объема работ..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="f-contactPerson"><i class="fa-solid fa-id-card"></i> Контактное лицо</label>
+          <input type="text" id="f-contactPerson" placeholder="ФИО ответственного">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group half">
+            <label for="f-latitude"><i class="fa-solid fa-location-dot"></i> Широта</label>
+            <input type="number" id="f-latitude" step="0.000001" placeholder="—" readonly>
+          </div>
+          <div class="form-group half">
+            <label for="f-longitude"><i class="fa-solid fa-location-dot"></i> Долгота</label>
+            <input type="number" id="f-longitude" step="0.000001" placeholder="—" readonly>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="f-status"><i class="fa-solid fa-spinner"></i> Статус</label>
+          <select id="f-status">
+            <option value="Новая">Новая</option>
+            <option value="В работе">В работе</option>
+            <option value="Завершена">Завершена</option>
+          </select>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group half">
+            <label><i class="fa-solid fa-calendar-days"></i> Дата создания</label>
+            <input type="text" id="f-createdAt" readonly placeholder="—">
+          </div>
+          <div class="form-group half">
+            <label><i class="fa-solid fa-user"></i> Автор</label>
+            <input type="text" id="f-author" readonly placeholder="—">
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary" id="btn-submit">
+            <i class="fa-solid fa-check"></i> <span>Создать заявку</span>
+          </button>
+          <button type="button" class="btn btn-ghost" id="btn-cancel-edit">
+            <i class="fa-solid fa-xmark"></i> Отмена
+          </button>
+        </div>
+      </form>
+    </aside>
+
+  </main>
+</div>
+
+<!-- ===== Модальное окно: имя пользователя ===== -->
+<div class="modal-overlay" id="modal-user">
+  <div class="modal glass">
+    <div class="modal-icon"><i class="fa-solid fa-user-astronaut"></i></div>
+    <h3>Добро пожаловать!</h3>
+    <p>Введите ваше имя, чтобы система связала с вами создаваемые заявки.</p>
+    <input type="text" id="input-username" placeholder="Ваше имя..." maxlength="40">
+    <button class="btn btn-primary" id="btn-save-username" type="button">
+      <i class="fa-solid fa-arrow-right"></i> Продолжить
+    </button>
+  </div>
+</div>
+
+<!-- ===== Модальное окно: подтверждение удаления ===== -->
+<div class="modal-overlay" id="modal-confirm">
+  <div class="modal glass modal-danger">
+    <div class="modal-icon danger"><i class="fa-solid fa-triangle-exclamation"></i></div>
+    <h3>Удалить заявку?</h3>
+    <p id="confirm-text">Это действие необратимо. Заявка и её маркер будут удалены.</p>
+    <div class="modal-actions">
+      <button class="btn btn-danger" id="btn-confirm-delete" type="button">
+        <i class="fa-solid fa-trash"></i> Удалить
+      </button>
+      <button class="btn btn-ghost" id="btn-cancel-delete" type="button">Отмена</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Тосты (уведомления) ===== -->
+<div id="toast-container"></div>
+
+<!-- Leaflet JS (CDN) -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<!-- Модули приложения -->
+<script src="js/data.js"></script>
+<script src="js/map.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
+
