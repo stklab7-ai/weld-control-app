@@ -202,7 +202,7 @@ async function deleteUserFromFirebase(login) {
   }
 }
 
-/** Аутентификация пользователя (сначала Firebase, потом localStorage) */
+/** Аутентификация пользователя */
 async function authenticateUser(login, password) {
   try {
     const users = await loadUsersFromFirebase();
@@ -247,7 +247,7 @@ function subscribeToUsers(callback) {
   });
 }
 
-/** Получить всех пользователей (асинхронно) */
+/** Получить всех пользователей */
 async function getAllUsers() {
   try {
     return await loadUsersFromFirebase();
