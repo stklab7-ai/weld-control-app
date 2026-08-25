@@ -2,6 +2,7 @@
  * app.js — основная логика приложения "Сварочный контроль"
  */
 
+// ===== ИМПОРТЫ =====
 import { 
   loadFromFirebase,
   createInFirebase,
@@ -15,6 +16,9 @@ import {
   authenticate,
   registerUser
 } from './data.js';
+
+import { UI } from './ui.js';
+import { MapModule } from './map.js';
 
 const App = (() => {
   let currentUser = null;
