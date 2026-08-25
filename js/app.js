@@ -18,7 +18,6 @@ import {
 } from './data.js';
 
 import { UI } from './ui.js';
-import { MapModule } from './map.js';
 
 const App = (() => {
   let currentUser = null;
@@ -28,17 +27,6 @@ const App = (() => {
   /** Точка входа приложения */
   async function init() {
     UI.cacheElements();
-
-    // Инициализация карты
-    MapModule.init('map', { center: [55.751244, 37.618423], zoom: 11 });
-
-    MapModule.setHandlers({
-      onMapClick: handleMapClick,
-      onMarkerDragEnd: handleMarkerDragEnd,
-      onMarkerDoubleClick: handleEditRequest,
-      onEditFromPopup: handleEditRequest,
-    });
-
     bindUIEvents();
     UI.bindConfirmDeleteButtons();
 
@@ -76,7 +64,6 @@ const App = (() => {
         return;
       }
     }
-    // Показываем модалку входа
     document.getElementById('modal-login').classList.add('show');
     document.getElementById('app').style.display = 'none';
   }
@@ -115,39 +102,8 @@ const App = (() => {
     // --- Список заявок ---
     el.requestsList.addEventListener('click', handleListClick);
 
-    // --- Кнопки карты ---
-    document.getElementById('btn-geo').addEventListener('click', handleGeoLocate);
-    document.getElementById('btn-new-request').addEventListener('click', handleStartNewRequest);
-
-    // --- Кнопка свёртки карты ---
-    document.getElementById('map-toggle-btn').addEventListener('click', toggleMap);
-
     // --- Экспорт JSON ---
     document.getElementById('btn-export').addEventListener('click', handleExport);
-  }
-
-  /** Сворачивает/разворачивает карту */
-  function toggleMap() {
-    const panelMap = document.getElementById('panel-map');
-    const btn = document.getElementById('map-toggle-btn');
-    const icon = btn.querySelector('i');
-
-    panelMap.classList.toggle('collapsed');
-
-    if (panelMap.classList.contains('collapsed')) {
-      icon.className = 'fa-solid fa-chevron-right';
-      UI.showToast('Карта скрыта', 'info');
-    } else {
-      icon.className = 'fa-solid fa-chevron-left';
-      // При разворачивании обновляем размер карты
-      setTimeout(() => {
-        const map = MapModule.getMap();
-        if (map) {
-          map.invalidateSize();
-        }
-      }, 300);
-      UI.showToast('Карта показана', 'info');
-    }
   }
 
   /** Обработчик входа */
@@ -195,65 +151,12 @@ const App = (() => {
     const requests = getAll();
     const filters = UI.getFilters();
     const filtered = UI.renderList(requests, filters, activeRequestId);
-    const visibleIds = new Set(filtered.map((r) => r.id));
-    MapModule.setMarkerVisibility(requests, visibleIds);
   }
 
   /** Полное обновление */
   function refreshAll() {
     const requests = getAll();
-    MapModule.renderAll(requests);
     refreshList();
-  }
-
-  // ==========================================================================
-  // Обработчики карты
-  // ==========================================================================
-
-  function handleMapClick(lat, lng) {
-    if (activeRequestId !== null && !isCreatingNew) {
-      const request = getById(activeRequestId);
-      if (request) {
-        UI.setFormCoords(lat, lng);
-        updateInFirebase(activeRequestId, { latitude: lat, longitude: lng });
-        UI.showToast('Координаты заявки обновлены', 'info');
-      }
-      return;
-    }
-
-    isCreatingNew = true;
-    activeRequestId = null;
-    UI.resetForm(currentUser);
-    UI.setFormCoords(lat, lng);
-    UI.highlightCard(null);
-    UI.hideMapHint();
-    UI.showToast('Точка выбрана. Заполните форму заявки справа.', 'info');
-  }
-
-  function handleMarkerDragEnd(id, lat, lng) {
-    updateInFirebase(id, { latitude: lat, longitude: lng });
-    if (activeRequestId === id) {
-      UI.setFormCoords(lat, lng);
-    }
-    refreshList();
-    UI.showToast('Маркер перемещён, координаты сохранены', 'success');
-  }
-
-  function handleGeoLocate() {
-    UI.showToast('Определяем местоположение...', 'info');
-    MapModule.locateUser(
-      () => UI.showToast('Карта отцентрирована на вашем местоположении', 'success'),
-      (err) => UI.showToast('Не удалось получить геолокацию: ' + (err.message || 'ошибка'), 'error')
-    );
-  }
-
-  function handleStartNewRequest() {
-    isCreatingNew = true;
-    activeRequestId = null;
-    UI.resetForm(currentUser);
-    UI.highlightCard(null);
-    UI.showMapHint('Кликните по карте, чтобы указать точку контроля');
-    UI.showToast('Кликните по карте для выбора точки новой заявки', 'info');
   }
 
   // ==========================================================================
@@ -292,14 +195,12 @@ const App = (() => {
           author: currentUser || 'Неизвестный автор',
           approved: null
         });
-        MapModule.addMarker(newRequest);
         UI.showToast(`Заявка «${newRequest.objectName}» создана`, 'success');
 
         activeRequestId = newRequest.id;
         isCreatingNew = false;
         UI.fillForm(newRequest);
         refreshList();
-        MapModule.focusOn(newRequest.id);
       }
     } catch (err) {
       console.error('[App] Ошибка сохранения заявки:', err);
@@ -324,7 +225,6 @@ const App = (() => {
     isCreatingNew = false;
     UI.fillForm(request);
     UI.highlightCard(id);
-    MapModule.focusOn(id);
   }
 
   // ==========================================================================

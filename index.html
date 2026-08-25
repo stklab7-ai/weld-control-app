@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Сварочный контроль — Подача заявок</title>
 
-<!-- Firebase Import Map (должен быть ПЕРВЫМ) -->
+<!-- Firebase Import Map -->
 <script type="importmap">
 {
   "imports": {
@@ -15,8 +15,6 @@
 }
 </script>
 
-<!-- Leaflet CSS (CDN) -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <!-- Font Awesome (CDN) -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
 <!-- Google Fonts -->
@@ -52,7 +50,7 @@
       <i class="fa-solid fa-bolt logo-icon"></i>
       <div class="header-title">
         <h1>СВАРОЧНЫЙ<span>КОНТРОЛЬ</span></h1>
-        <p class="header-sub">Система подачи заявок на контроль сварных соединений</p>
+        <p class="header-sub">Система подачи заявок</p>
       </div>
     </div>
     <div class="header-right">
@@ -68,7 +66,7 @@
     </div>
   </header>
 
-  <!-- ===== Основная разметка: 3 колонки ===== -->
+  <!-- ===== Основная разметка: 2 колонки ===== -->
   <main class="app-main">
 
     <!-- ===== ЛЕВАЯ ПАНЕЛЬ: список заявок ===== -->
@@ -107,7 +105,7 @@
       <div class="requests-list" id="requests-list">
         <div class="empty-state" id="empty-state">
           <i class="fa-solid fa-inbox"></i>
-          <p>Пока нет заявок.<br>Кликните по карте, чтобы создать первую.</p>
+          <p>Пока нет заявок.<br>Создайте первую заявку</p>
         </div>
       </div>
 
@@ -115,30 +113,6 @@
         <i class="fa-solid fa-file-export"></i> Экспорт JSON
       </button>
     </aside>
-
-    <!-- ===== ЦЕНТРАЛЬНАЯ ПАНЕЛЬ: карта (СВЁРНУТА ПО УМОЛЧАНИЮ) ===== -->
-    <section class="panel panel-map collapsed" id="panel-map">
-      <div id="map"></div>
-
-      <!-- КНОПКА СВЁРТКИ КАРТЫ -->
-      <button class="map-toggle-btn" id="map-toggle-btn" title="Развернуть карту">
-        <i class="fa-solid fa-chevron-right"></i>
-      </button>
-
-      <div class="map-controls">
-        <button class="map-btn" id="btn-geo" title="Мое местоположение" type="button">
-          <i class="fa-solid fa-location-crosshairs"></i>
-        </button>
-        <button class="map-btn" id="btn-new-request" title="Новая заявка (клик по карте)" type="button">
-          <i class="fa-solid fa-plus"></i>
-        </button>
-      </div>
-
-      <div class="map-hint" id="map-hint">
-        <i class="fa-solid fa-circle-info"></i>
-        <span>Кликните по карте, чтобы указать точку контроля</span>
-      </div>
-    </section>
 
     <!-- ===== ПРАВАЯ ПАНЕЛЬ: форма заявки ===== -->
     <aside class="panel panel-form">
@@ -235,7 +209,7 @@
   <div class="modal glass modal-danger">
     <div class="modal-icon danger"><i class="fa-solid fa-triangle-exclamation"></i></div>
     <h3>Удалить заявку?</h3>
-    <p id="confirm-text">Это действие необратимо. Заявка и её маркер будут удалены.</p>
+    <p id="confirm-text">Это действие необратимо. Заявка будет удалена.</p>
     <div class="modal-actions">
       <button class="btn btn-danger" id="btn-confirm-delete" type="button">
         <i class="fa-solid fa-trash"></i> Удалить
@@ -248,10 +222,7 @@
 <!-- ===== Тосты (уведомления) ===== -->
 <div id="toast-container"></div>
 
-<!-- Leaflet JS (CDN) -->
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-<!-- Модули приложения (только app.js, остальные импортируются через него) -->
+<!-- Модули приложения -->
 <script type="module" src="js/app.js"></script>
 </body>
 </html>
