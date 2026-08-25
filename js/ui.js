@@ -317,6 +317,7 @@ function showMapHint(text) {
   el.mapHint.style.opacity = '1';
 }
 
+
 // ===== ЭКСПОРТ =====
 export const UI = {
   TYPE_COLORS,
