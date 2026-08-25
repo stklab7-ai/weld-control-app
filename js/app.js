@@ -119,8 +119,34 @@ const App = (() => {
     document.getElementById('btn-geo').addEventListener('click', handleGeoLocate);
     document.getElementById('btn-new-request').addEventListener('click', handleStartNewRequest);
 
+    // --- Кнопка свёртки карты ---
+    document.getElementById('map-toggle-btn').addEventListener('click', toggleMap);
+
     // --- Экспорт JSON ---
     document.getElementById('btn-export').addEventListener('click', handleExport);
+  }
+
+  /** Сворачивает/разворачивает карту */
+  function toggleMap() {
+    const panelMap = document.getElementById('panel-map');
+    const btn = document.getElementById('map-toggle-btn');
+    const icon = btn.querySelector('i');
+
+    panelMap.classList.toggle('collapsed');
+
+    if (panelMap.classList.contains('collapsed')) {
+      icon.className = 'fa-solid fa-chevron-right';
+      UI.showToast('Карта скрыта', 'info');
+    } else {
+      icon.className = 'fa-solid fa-chevron-left';
+      // При разворачивании обновляем размер карты
+      setTimeout(() => {
+        if (window.map) {
+          window.map.invalidateSize();
+        }
+      }, 300);
+      UI.showToast('Карта показана', 'info');
+    }
   }
 
   /** Обработчик входа */

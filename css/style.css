@@ -764,6 +764,63 @@ select option { background: #12141f; color: var(--text-main); }
   cursor: pointer;
   transition: all var(--transition);
 }
+/* ==========================================================================
+   КНОПКА СВЁРТКИ КАРТЫ
+   ========================================================================== */
+
+.map-toggle-btn {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+  width: 28px;
+  height: 60px;
+  border: none;
+  border-radius: 0 12px 12px 0;
+  background: rgba(15, 18, 30, 0.85);
+  backdrop-filter: blur(8px);
+  color: var(--neon-blue);
+  font-size: 14px;
+  cursor: pointer;
+  z-index: 600;
+  transition: all var(--transition);
+  border: 1px solid var(--panel-border);
+  border-left: none;
+  box-shadow: 0 0 14px rgba(0, 212, 255, 0.15);
+}
+.map-toggle-btn:hover {
+  background: rgba(0, 212, 255, 0.18);
+  box-shadow: 0 0 20px rgba(0, 212, 255, 0.4);
+}
+
+/* Режим "карта свернута" */
+.panel-map.collapsed {
+  flex: 0 0 0 !important;
+  min-width: 0 !important;
+  width: 0 !important;
+  overflow: hidden;
+  border: none;
+  margin: 0;
+  padding: 0;
+  opacity: 0;
+  transition: all 0.3s ease;
+}
+.panel-map.collapsed #map {
+  display: none;
+}
+
+/* Кнопка, когда карта свернута */
+.panel-map.collapsed .map-toggle-btn {
+  left: 0;
+  transform: translateY(-50%) rotate(180deg);
+  border-radius: 0 12px 12px 0;
+  background: rgba(0, 212, 255, 0.12);
+}
+
+/* Адаптивность: при свёрнутой карте кнопка остаётся видимой */
+.panel-map .map-toggle-btn {
+  left: 0;
+}
 .btn-vote:hover { background: rgba(255,255,255,0.08); }
 .btn-approve:hover { border-color: var(--color-vik); color: var(--color-vik); }
 .btn-reject:hover { border-color: var(--color-uzk); color: var(--color-uzk); }
