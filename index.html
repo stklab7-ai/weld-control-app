@@ -63,6 +63,9 @@
         <span id="user-name">—</span>
         <button id="btn-change-user" title="Сменить пользователя" type="button"><i class="fa-solid fa-pen"></i></button>
       </div>
+      <button class="btn-admin" id="btn-admin" title="Управление пользователями" type="button">
+        <i class="fa-solid fa-users-gear"></i>
+      </button>
     </div>
   </header>
 
@@ -215,6 +218,37 @@
         <i class="fa-solid fa-trash"></i> Удалить
       </button>
       <button class="btn btn-ghost" id="btn-cancel-delete" type="button">Отмена</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Модальное окно: управление пользователями ===== -->
+<div class="modal-overlay" id="modal-admin">
+  <div class="modal glass" style="width: 500px; max-width: 95vw; text-align: left; max-height: 90vh; overflow-y: auto;">
+    <div class="modal-icon"><i class="fa-solid fa-users-gear"></i></div>
+    <h3 style="text-align:center;">Управление пользователями</h3>
+    <p style="text-align:center; font-size:12px; color:var(--text-dim);">Пользователи хранятся в Firebase</p>
+    
+    <div style="margin-bottom: 12px;">
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <input type="text" id="admin-new-login" placeholder="Логин" style="flex:1; min-width:100px;">
+        <input type="text" id="admin-new-password" placeholder="Пароль" style="flex:1; min-width:100px;">
+        <select id="admin-new-role" style="flex:0 0 80px;">
+          <option value="user">user</option>
+          <option value="admin">admin</option>
+        </select>
+        <button class="btn btn-primary" id="admin-add-user" style="flex:0 0 auto; padding: 6px 12px; font-size:12px;">
+          <i class="fa-solid fa-plus"></i> Добавить
+        </button>
+      </div>
+    </div>
+    
+    <div id="admin-users-list" style="max-height: 300px; overflow-y: auto; border: 1px solid var(--panel-border); border-radius: 8px; padding: 8px;">
+      <!-- Список пользователей -->
+    </div>
+    
+    <div style="display:flex; gap:8px; margin-top:12px; justify-content:flex-end;">
+      <button class="btn btn-ghost" id="admin-close" type="button" style="padding:6px 16px; font-size:12px;">Закрыть</button>
     </div>
   </div>
 </div>

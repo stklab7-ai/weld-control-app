@@ -141,6 +141,29 @@ html, body {
 .user-badge #btn-change-user:hover { color: var(--neon-pink); }
 
 /* ==========================================================================
+   АДМИН-КНОПКА
+   ========================================================================== */
+.btn-admin {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid rgba(108, 92, 231, 0.3);
+  background: rgba(108, 92, 231, 0.1);
+  color: var(--neon-purple);
+  cursor: pointer;
+  transition: all var(--transition);
+  font-size: 16px;
+}
+.btn-admin:hover {
+  background: rgba(108, 92, 231, 0.25);
+  box-shadow: 0 0 20px rgba(108, 92, 231, 0.3);
+  transform: scale(1.05);
+}
+
+/* ==========================================================================
    Основной макет — 2 колонки
    ========================================================================== */
 .app-main {
@@ -620,6 +643,11 @@ select option { background: #12141f; color: var(--text-main); }
   .stats-badge, .user-badge {
     font-size: 10px;
     padding: 3px 8px;
+  }
+  .btn-admin {
+    width: 30px;
+    height: 30px;
+    font-size: 13px;
   }
 
   .app-main {

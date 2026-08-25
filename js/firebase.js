@@ -14,7 +14,9 @@ import {
   doc, 
   onSnapshot,
   query,
-  orderBy
+  orderBy,
+  setDoc,
+  getDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // ===== ВАША КОНФИГУРАЦИЯ =====
@@ -28,15 +30,25 @@ const firebaseConfig = {
   measurementId: "G-680NV4TY7J"
 };
 
-// Инициализация
+// Инициализация Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const requestsCollection = collection(db, "requests");
 
-// Экспорт
+// Коллекции
+const requestsCollection = collection(db, "requests");
+const usersCollection = collection(db, "users");
+
+// ===== ЭКСПОРТ =====
 export { 
+  // Firebase
+  app,
   db,
+  
+  // Коллекции
   requestsCollection,
+  usersCollection,
+  
+  // Методы Firestore
   addDoc,
   getDocs,
   updateDoc,
@@ -44,5 +56,7 @@ export {
   doc,
   onSnapshot,
   query,
-  orderBy
+  orderBy,
+  setDoc,
+  getDoc
 };
