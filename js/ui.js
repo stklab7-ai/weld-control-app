@@ -181,7 +181,7 @@ function getFormData() {
   };
 }
 
-/** Проверяет валидность формы */
+/** Проверяет валидность формы (КООРДИНАТЫ НЕОБЯЗАТЕЛЬНЫ) */
 function validateForm(data) {
   if (!data.objectName) {
     return { valid: false, message: 'Укажите название объекта' };
@@ -189,9 +189,7 @@ function validateForm(data) {
   if (!data.controlType) {
     return { valid: false, message: 'Выберите тип контроля' };
   }
-  if (isNaN(data.latitude) || isNaN(data.longitude)) {
-    return { valid: false, message: 'Укажите точку на карте (координаты не заданы)' };
-  }
+  // Координаты теперь НЕОБЯЗАТЕЛЬНЫЕ
   return { valid: true };
 }
 
@@ -201,8 +199,8 @@ function fillForm(request) {
   el.fControlType.value = request.controlType;
   el.fDescription.value = request.description || '';
   el.fContactPerson.value = request.contactPerson || '';
-  el.fLatitude.value = request.latitude;
-  el.fLongitude.value = request.longitude;
+  el.fLatitude.value = request.latitude || '';
+  el.fLongitude.value = request.longitude || '';
   el.fStatus.value = request.status;
   el.fCreatedAt.value = formatDate(request.createdAt);
   el.fAuthor.value = request.author;
@@ -214,8 +212,10 @@ function fillForm(request) {
 
 /** Устанавливает координаты в форме */
 function setFormCoords(lat, lng) {
-  el.fLatitude.value = lat.toFixed(6);
-  el.fLongitude.value = lng.toFixed(6);
+  if (lat !== undefined && lng !== undefined) {
+    el.fLatitude.value = lat.toFixed(6);
+    el.fLongitude.value = lng.toFixed(6);
+  }
 }
 
 /** Сбрасывает форму в режим "новая заявка" */
@@ -316,7 +316,6 @@ function showMapHint(text) {
   if (text) el.mapHint.querySelector('span').textContent = text;
   el.mapHint.style.opacity = '1';
 }
-
 
 // ===== ЭКСПОРТ =====
 export const UI = {

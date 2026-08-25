@@ -269,6 +269,13 @@ const App = (() => {
       return;
     }
 
+    // ===== ЕСЛИ КООРДИНАТЫ НЕ ЗАДАНЫ — СТАВИМ ПО УМОЛЧАНИЮ =====
+    if (isNaN(data.latitude) || isNaN(data.longitude) || data.latitude === 0 || data.longitude === 0) {
+      data.latitude = 55.751244;
+      data.longitude = 37.618423;
+      UI.showToast('Координаты не указаны, установлены по умолчанию (Москва)', 'info');
+    }
+
     try {
       if (activeRequestId !== null && !isCreatingNew) {
         // Режим обновления
