@@ -150,12 +150,11 @@ const App = (() => {
   function refreshList() {
     const requests = getAll();
     const filters = UI.getFilters();
-    const filtered = UI.renderList(requests, filters, activeRequestId);
+    UI.renderList(requests, filters, activeRequestId);
   }
 
   /** Полное обновление */
   function refreshAll() {
-    const requests = getAll();
     refreshList();
   }
 
