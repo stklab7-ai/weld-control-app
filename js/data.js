@@ -4,6 +4,7 @@
 
 import { 
   requestsCollection,
+  usersCollection,
   addDoc,
   getDocs,
   updateDoc,
@@ -11,7 +12,9 @@ import {
   doc,
   onSnapshot,
   query,
-  orderBy
+  orderBy,
+  setDoc,
+  getDoc
 } from './firebase.js';
 
 const STORAGE_KEY = 'weld_requests';
@@ -129,16 +132,35 @@ function subscribeToFirebase(callback) {
   });
 }
 
-// ===== УПРАВЛЕНИЕ ПОЛЬЗОВАТЕЛЯМИ =====
-function getUsers() {
+// ============================================================
+// ===== УПРАВЛЕНИЕ ПОЛЬЗОВАТЕЛЯМИ (Firebase + localStorage) =====
+// ============================================================
+
+/** Загружает пользователей из Firebase */
+async function loadUsersFromFirebase() {
+  try {
+    const snapshot = await getDocs(usersCollection);
+    const users = {};
+    snapshot.forEach((doc) => {
+      users[doc.id] = doc.data();
+    });
+    localStorage.setItem(USERS_KEY, JSON.stringify(users));
+    return users;
+  } catch (err) {
+    console.error('[Firebase] Ошибка загрузки пользователей:', err);
+    return getUsersLocal();
+  }
+}
+
+/** Получает пользователей из localStorage */
+function getUsersLocal() {
   try {
     const raw = localStorage.getItem(USERS_KEY);
     if (!raw) {
       const defaultUsers = { 
-        admin: { password: 'admin123', role: 'admin' },
-        user: { password: 'user123', role: 'user' }
+        admin: { password: 'admin123', role: 'admin' }
       };
-      saveUsers(defaultUsers);
+      saveUsersLocal(defaultUsers);
       return defaultUsers;
     }
     return JSON.parse(raw);
@@ -147,23 +169,109 @@ function getUsers() {
   }
 }
 
-function saveUsers(users) {
+/** Сохраняет пользователей в localStorage */
+function saveUsersLocal(users) {
   localStorage.setItem(USERS_KEY, JSON.stringify(users));
 }
 
+/** Сохраняет пользователя в Firebase */
+async function saveUserToFirebase(login, data) {
+  try {
+    await setDoc(doc(usersCollection, login), data);
+    const users = getUsersLocal();
+    users[login] = data;
+    saveUsersLocal(users);
+    return true;
+  } catch (err) {
+    console.error('[Firebase] Ошибка сохранения пользователя:', err);
+    return false;
+  }
+}
+
+/** Удаляет пользователя из Firebase */
+async function deleteUserFromFirebase(login) {
+  try {
+    await deleteDoc(doc(usersCollection, login));
+    const users = getUsersLocal();
+    delete users[login];
+    saveUsersLocal(users);
+    return true;
+  } catch (err) {
+    console.error('[Firebase] Ошибка удаления пользователя:', err);
+    return false;
+  }
+}
+
+/** Аутентификация пользователя (сначала Firebase, потом localStorage) */
+async function authenticateUser(login, password) {
+  try {
+    const users = await loadUsersFromFirebase();
+    if (users[login] && users[login].password === password) {
+      return users[login];
+    }
+    return null;
+  } catch (err) {
+    console.warn('[Auth] Firebase недоступен, проверяем локально');
+    const users = getUsersLocal();
+    if (users[login] && users[login].password === password) {
+      return users[login];
+    }
+    return null;
+  }
+}
+
+/** Регистрация нового пользователя */
+async function registerUserInFirebase(login, password, role = 'user') {
+  try {
+    const users = await loadUsersFromFirebase();
+    if (users[login]) return false;
+    await saveUserToFirebase(login, { password, role });
+    return true;
+  } catch (err) {
+    console.error('[Firebase] Ошибка регистрации:', err);
+    return false;
+  }
+}
+
+/** Подписка на обновления пользователей в реальном времени */
+function subscribeToUsers(callback) {
+  return onSnapshot(usersCollection, (snapshot) => {
+    const users = {};
+    snapshot.forEach((doc) => {
+      users[doc.id] = doc.data();
+    });
+    saveUsersLocal(users);
+    if (callback) callback(users);
+  }, (error) => {
+    console.error('[Firebase] Ошибка подписки на пользователей:', error);
+  });
+}
+
+/** Получить всех пользователей (асинхронно) */
+async function getAllUsers() {
+  try {
+    return await loadUsersFromFirebase();
+  } catch {
+    return getUsersLocal();
+  }
+}
+
+// ===== СТАРЫЕ ФУНКЦИИ ДЛЯ СОВМЕСТИМОСТИ =====
+function getUsers() { return getUsersLocal(); }
+function saveUsers(users) { saveUsersLocal(users); }
 function authenticate(login, password) {
-  const users = getUsers();
+  const users = getUsersLocal();
   if (users[login] && users[login].password === password) {
     return users[login];
   }
   return null;
 }
-
 function registerUser(login, password, role = 'user') {
-  const users = getUsers();
+  const users = getUsersLocal();
   if (users[login]) return false;
   users[login] = { password, role };
-  saveUsers(users);
+  saveUsersLocal(users);
+  saveUserToFirebase(login, { password, role }).catch(console.error);
   return true;
 }
 
@@ -196,7 +304,17 @@ export {
   updateInFirebase,
   removeFromFirebase,
   subscribeToFirebase,
-  // Пользователи
+  // Пользователи (новые)
+  loadUsersFromFirebase,
+  getUsersLocal,
+  saveUsersLocal,
+  saveUserToFirebase,
+  deleteUserFromFirebase,
+  authenticateUser,
+  registerUserInFirebase,
+  subscribeToUsers,
+  getAllUsers,
+  // Старые (для совместимости)
   getUsers,
   saveUsers,
   authenticate,
