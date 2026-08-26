@@ -18,7 +18,6 @@ function cacheElements() {
   el.emptyState = document.getElementById('empty-state');
   el.searchInput = document.getElementById('search-input');
   el.filterBox = document.getElementById('filter-box');
-  el.statusFilter = document.getElementById('status-filter');
   el.statTotal = document.getElementById('stat-total');
   el.cntVik = document.getElementById('cnt-vik');
   el.cntUzk = document.getElementById('cnt-uzk');
@@ -132,8 +131,7 @@ function renderList(requests, filters, activeId) {
   const filtered = requests.filter((r) => {
     const matchesSearch = !search || r.objectName.toLowerCase().includes(search);
     const matchesType = filters.types.has(r.controlType);
-    const matchesStatus = !filters.status || r.status === filters.status;
-    return matchesSearch && matchesType && matchesStatus;
+    return matchesSearch && matchesType;
   });
 
   // Сортировка: годные вниз
@@ -161,11 +159,11 @@ function renderList(requests, filters, activeId) {
 
 /** Обновляет счётчики заявок в шапке и левой панели */
 function updateCounters(requests) {
-  el.statTotal.textContent = requests.length;
-  el.cntVik.textContent = requests.filter((r) => r.controlType === 'Вик').length;
-  el.cntUzk.textContent = requests.filter((r) => r.controlType === 'Узк').length;
-  el.cntRk.textContent = requests.filter((r) => r.controlType === 'Рк').length;
-  el.cntCd.textContent = requests.filter((r) => r.controlType === 'Цд').length;
+  if (el.statTotal) el.statTotal.textContent = requests.length;
+  if (el.cntVik) el.cntVik.textContent = requests.filter((r) => r.controlType === 'Вик').length;
+  if (el.cntUzk) el.cntUzk.textContent = requests.filter((r) => r.controlType === 'Узк').length;
+  if (el.cntRk) el.cntRk.textContent = requests.filter((r) => r.controlType === 'Рк').length;
+  if (el.cntCd) el.cntCd.textContent = requests.filter((r) => r.controlType === 'Цд').length;
 }
 
 /** Собирает текущие значения формы в объект */
@@ -189,7 +187,6 @@ function validateForm(data) {
   if (!data.controlType) {
     return { valid: false, message: 'Выберите тип контроля' };
   }
-  // Координаты НЕ проверяем — они необязательны!
   return { valid: true };
 }
 
@@ -206,7 +203,7 @@ function fillForm(request) {
   el.fAuthor.value = request.author;
 
   el.formTitle.innerHTML = '<i class="fa-solid fa-pen-to-square"></i> Редактирование заявки';
-  el.btnSubmit.innerHTML = '<i class="fa-solid fa-rotate"></i> <span>Обновить заявку</span>';
+  el.btnSubmit.innerHTML = '<i class="fa-solid fa-rotate"></i> <span>Обновить</span>';
   el.btnCancelEdit.style.display = 'flex';
 }
 
@@ -229,18 +226,19 @@ function resetForm(author) {
   el.fControlType.value = 'Вик';
 
   el.formTitle.innerHTML = '<i class="fa-solid fa-file-pen"></i> Новая заявка';
-  el.btnSubmit.innerHTML = '<i class="fa-solid fa-check"></i> <span>Создать заявку</span>';
+  el.btnSubmit.innerHTML = '<i class="fa-solid fa-check"></i> <span>Создать</span>';
   el.btnCancelEdit.style.display = 'none';
 }
 
 /** Получает текущие фильтры из UI */
 function getFilters() {
   const types = new Set();
-  el.filterBox.querySelectorAll('input[type="checkbox"]:checked').forEach((cb) => types.add(cb.value));
+  if (el.filterBox) {
+    el.filterBox.querySelectorAll('input[type="checkbox"]:checked').forEach((cb) => types.add(cb.value));
+  }
   return {
-    search: el.searchInput.value,
-    types,
-    status: el.statusFilter.value,
+    search: el.searchInput ? el.searchInput.value : '',
+    types: types,
   };
 }
 
@@ -263,7 +261,7 @@ function hideUserModal() {
 }
 
 function setUserBadge(name) {
-  el.userNameSpan.textContent = name;
+  if (el.userNameSpan) el.userNameSpan.textContent = name;
 }
 
 /** Модалка подтверждения удаления */
@@ -273,24 +271,28 @@ let deleteCallback = null;
 function showConfirmDelete(request, onConfirm) {
   pendingDeleteId = request.id;
   deleteCallback = onConfirm;
-  el.confirmText.textContent = `Заявка «${request.objectName}» (#${request.id}) будет удалена без возможности восстановления.`;
-  el.modalConfirm.classList.add('show');
+  if (el.confirmText) el.confirmText.textContent = `Заявка «${request.objectName}» (#${request.id}) будет удалена без возможности восстановления.`;
+  if (el.modalConfirm) el.modalConfirm.classList.add('show');
 }
 
 function hideConfirmDelete() {
-  el.modalConfirm.classList.remove('show');
+  if (el.modalConfirm) el.modalConfirm.classList.remove('show');
   pendingDeleteId = null;
   deleteCallback = null;
 }
 
 function bindConfirmDeleteButtons() {
-  el.btnConfirmDelete.addEventListener('click', () => {
-    if (deleteCallback && pendingDeleteId !== null) {
-      deleteCallback(pendingDeleteId);
-    }
-    hideConfirmDelete();
-  });
-  el.btnCancelDelete.addEventListener('click', hideConfirmDelete);
+  if (el.btnConfirmDelete) {
+    el.btnConfirmDelete.addEventListener('click', () => {
+      if (deleteCallback && pendingDeleteId !== null) {
+        deleteCallback(pendingDeleteId);
+      }
+      hideConfirmDelete();
+    });
+  }
+  if (el.btnCancelDelete) {
+    el.btnCancelDelete.addEventListener('click', hideConfirmDelete);
+  }
 }
 
 /** Показывает тост-уведомление */
@@ -303,7 +305,9 @@ function showToast(message, type = 'info') {
   const toast = document.createElement('div');
   toast.className = `toast ${type}`;
   toast.innerHTML = `<i class="fa-solid ${icons[type] || icons.info}"></i><span>${escapeHtml(message)}</span>`;
-  el.toastContainer.appendChild(toast);
+  if (el.toastContainer) {
+    el.toastContainer.appendChild(toast);
+  }
   setTimeout(() => toast.remove(), 3000);
 }
 
