@@ -354,6 +354,20 @@ html, body {
   margin: 0 0 2px;
   word-break: break-word;
 }
+.rc-desc {
+  font-size: 10px;
+  color: var(--text-dim);
+  margin: 2px 0 0;
+  word-break: break-word;
+  opacity: 0.85;
+}
+.rc-contact {
+  font-size: 10px;
+  color: var(--neon-blue);
+  margin: 2px 0 0;
+  word-break: break-word;
+  opacity: 0.9;
+}
 .rc-num { font-size: 9px; color: var(--text-faint); font-weight: 600; }
 .rc-del {
   background: none;
@@ -395,15 +409,6 @@ html, body {
 
 .rc-date { font-size: 9px; color: var(--text-faint); margin-top: 2px; }
 .rc-date i { margin-right: 2px; }
-
-/* Стиль для описания в карточке заявки */
-.rc-desc {
-  font-size: 10px;
-  color: var(--text-dim);
-  margin: 2px 0 0;
-  word-break: break-word;
-  opacity: 0.8;
-}
 
 .verdict {
   font-weight: 700;
@@ -670,7 +675,7 @@ select option { background: #12141f; color: var(--text-main); }
 }
 
 /* ==========================================================================
-   МОБИЛЬНАЯ АДАПТАЦИЯ (СПИСОК СВЕРХУ, ФОРМА СНИЗУ)
+   МОБИЛЬНАЯ АДАПТАЦИЯ
    ========================================================================== */
 @media (max-width: 768px) {
   .app-header {
@@ -703,7 +708,7 @@ select option { background: #12141f; color: var(--text-main); }
     height: 100%;
   }
 
-  /* ===== СПИСОК — СВЕРХУ (order: 1) ===== */
+  /* СПИСОК — СВЕРХУ */
   .panel-list {
     flex: 1 1 50% !important;
     min-height: 30vh !important;
@@ -712,7 +717,7 @@ select option { background: #12141f; color: var(--text-main); }
     order: 1;
   }
 
-  /* ===== ФОРМА — СНИЗУ (order: 2) ===== */
+  /* ФОРМА — СНИЗУ */
   .panel-form {
     flex: 0 0 auto !important;
     min-height: 200px !important;
@@ -721,7 +726,7 @@ select option { background: #12141f; color: var(--text-main); }
     order: 2;
   }
 
-  /* ===== КОГДА ФОРМА СВЁРНУТА — СПИСОК РАСТЯГИВАЕТСЯ ===== */
+  /* Когда форма свернута — список растягивается */
   .panel-form.collapsed {
     flex: 0 0 44px !important;
     min-height: 44px !important;
@@ -733,7 +738,7 @@ select option { background: #12141f; color: var(--text-main); }
     max-height: none !important;
   }
 
-  /* ===== КОГДА СПИСОК СВЁРНУТ — ФОРМА НЕ МЕНЯЕТСЯ ===== */
+  /* Когда список свернут — форма не меняется */
   .panel-list.collapsed {
     flex: 0 0 44px !important;
     min-height: 44px !important;
@@ -782,6 +787,9 @@ select option { background: #12141f; color: var(--text-main); }
     font-size: 11px;
   }
   .rc-desc {
+    font-size: 9px;
+  }
+  .rc-contact {
     font-size: 9px;
   }
   .rc-meta {
@@ -872,8 +880,5 @@ select option { background: #12141f; color: var(--text-main); }
   }
   .panel-form.collapsed + .panel-list {
     min-height: 50vh !important;
-  }
-  .rc-desc {
-    font-size: 8px;
   }
 }
