@@ -633,7 +633,9 @@ select option { background: #12141f; color: var(--text-main); }
   border-color: var(--neon-blue);
 }
 
-/* ===== Свёрнутый список ===== */
+/* ==========================================================================
+   СВЁРНУТЫЕ СОСТОЯНИЯ (десктоп)
+   ========================================================================== */
 .panel-list.collapsed .requests-list {
   display: none !important;
 }
@@ -648,7 +650,6 @@ select option { background: #12141f; color: var(--text-main); }
   min-height: 60px !important;
 }
 
-/* ===== Свёрнутая форма ===== */
 .panel-form.collapsed #request-form {
   display: none !important;
 }
@@ -692,6 +693,7 @@ select option { background: #12141f; color: var(--text-main); }
     gap: 4px;
     overflow-y: auto;
     flex: 1;
+    display: flex;
   }
 
   /* Панель списка — по умолчанию 40% */
@@ -700,6 +702,7 @@ select option { background: #12141f; color: var(--text-main); }
     max-height: 40vh !important;
     min-height: 44px !important;
     transition: all 0.3s ease;
+    order: 1;
   }
 
   /* Панель формы — по умолчанию 60% */
@@ -708,6 +711,7 @@ select option { background: #12141f; color: var(--text-main); }
     min-height: 200px !important;
     max-height: 60vh !important;
     transition: all 0.3s ease;
+    order: 2;
   }
 
   /* ===== КОГДА ФОРМА СВЁРНУТА — СПИСОК ЗАНИМАЕТ ВСЁ МЕСТО ===== */
@@ -720,8 +724,7 @@ select option { background: #12141f; color: var(--text-main); }
     display: none !important;
   }
 
-  /* Когда форма свернута — список растягивается на всё свободное место */
-  .panel-form.collapsed + .panel-list,
+  /* Когда форма свернута — список растягивается */
   .panel-form.collapsed ~ .panel-list {
     flex: 1 1 auto !important;
     max-height: none !important;
@@ -747,8 +750,8 @@ select option { background: #12141f; color: var(--text-main); }
     display: none !important;
   }
 
-  /* Когда список свернут — форма растягивается на всё свободное место */
-  .panel-list.collapsed + .panel-form {
+  /* Когда список свернут — форма растягивается */
+  .panel-list.collapsed ~ .panel-form {
     flex: 1 1 auto !important;
     min-height: 200px !important;
     max-height: none !important;
@@ -888,13 +891,12 @@ select option { background: #12141f; color: var(--text-main); }
     max-height: 38px !important;
     min-height: 38px !important;
   }
-  .panel-form.collapsed + .panel-list,
   .panel-form.collapsed ~ .panel-list {
     flex: 1 1 auto !important;
     max-height: none !important;
     min-height: 150px !important;
   }
-  .panel-list.collapsed + .panel-form {
+  .panel-list.collapsed ~ .panel-form {
     flex: 1 1 auto !important;
     min-height: 150px !important;
     max-height: none !important;
