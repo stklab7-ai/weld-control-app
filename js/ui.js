@@ -80,7 +80,7 @@ function typeIconClass(type) {
   return map[type] || 'fa-tag';
 }
 
-/** Строит HTML одной карточки заявки (БЕЗ КООРДИНАТ) */
+/** Строит HTML одной карточки заявки (БЕЗ ХЕША, С ОПИСАНИЕМ И КОНТАКТОМ) */
 function buildCardHtml(request, isActive) {
   const statusClass = 'st-' + request.status.toLowerCase().replace(/\s+/g, '-');
   const isApproved = request.approved === true;
@@ -93,12 +93,16 @@ function buildCardHtml(request, isActive) {
     verdictHtml = `<span class="verdict rejected"><i class="fa-solid fa-xmark"></i> НЕ ГОДЕН</span>`;
   }
 
+  const description = request.description || '';
+  const contactPerson = request.contactPerson || '';
+
   return `
     <div class="request-card type-${escapeHtml(request.controlType)} ${isActive ? 'active' : ''} ${isApproved ? 'approved' : ''} ${isRejected ? 'rejected' : ''}" data-id="${request.id}">
       <div class="rc-top">
         <div>
           <p class="rc-title">${escapeHtml(request.objectName)}</p>
-          <span class="rc-num">#${request.id}</span>
+          ${description ? `<p class="rc-desc">📝 ${escapeHtml(description)}</p>` : ''}
+          ${contactPerson ? `<p class="rc-contact">👤 ${escapeHtml(contactPerson)}</p>` : ''}
         </div>
         <button class="rc-del" data-id="${request.id}" title="Удалить заявку" type="button">
           <i class="fa-solid fa-trash"></i>
@@ -126,7 +130,10 @@ function buildCardHtml(request, isActive) {
 function renderList(requests, filters, activeId) {
   const search = (filters.search || '').trim().toLowerCase();
   const filtered = requests.filter((r) => {
-    const matchesSearch = !search || r.objectName.toLowerCase().includes(search);
+    const matchesSearch = !search || 
+      r.objectName.toLowerCase().includes(search) || 
+      (r.description && r.description.toLowerCase().includes(search)) ||
+      (r.contactPerson && r.contactPerson.toLowerCase().includes(search));
     const matchesType = filters.types.has(r.controlType);
     return matchesSearch && matchesType;
   });
@@ -163,7 +170,7 @@ function updateCounters(requests) {
   if (el.cntCd) el.cntCd.textContent = requests.filter((r) => r.controlType === 'Цд').length;
 }
 
-/** Собирает текущие значения формы в объект (БЕЗ КООРДИНАТ) */
+/** Собирает текущие значения формы в объект */
 function getFormData() {
   return {
     objectName: el.fObjectName.value.trim(),
