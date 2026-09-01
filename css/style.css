@@ -220,8 +220,16 @@ html, body {
   overflow: hidden;
 }
 
-.panel-list { flex: 0 0 40%; min-width: 280px; }
-.panel-form { flex: 1; min-width: 300px; }
+.panel-list { 
+  flex: 0 0 40%; 
+  min-width: 280px; 
+  transition: all 0.3s ease;
+}
+.panel-form { 
+  flex: 1; 
+  min-width: 300px; 
+  transition: all 0.3s ease;
+}
 
 .panel-header {
   padding: 10px 14px 6px;
@@ -683,36 +691,58 @@ select option { background: #12141f; color: var(--text-main); }
     padding: 4px;
     gap: 4px;
     overflow-y: auto;
+    flex: 1;
   }
 
+  /* Панель списка — может уменьшаться */
   .panel-list {
     flex: 0 0 auto !important;
     max-height: 40vh !important;
-    min-height: 50px !important;
-  }
-  .panel-form {
-    flex: 1 1 auto !important;
-    min-height: 50vh !important;
-    max-height: 60vh !important;
+    min-height: 44px !important;
+    transition: all 0.3s ease;
   }
 
+  /* Панель формы — занимает всё остальное место */
+  .panel-form {
+    flex: 1 1 auto !important;
+    min-height: 200px !important;
+    max-height: none !important;
+    transition: all 0.3s ease;
+  }
+
+  /* Когда список СВЁРНУТ — форма занимает ВСЁ место */
   .panel-list.collapsed {
-    max-height: 50px !important;
-    min-height: 50px !important;
+    max-height: 44px !important;
+    min-height: 44px !important;
+    flex: 0 0 auto !important;
   }
   .panel-list.collapsed .panel-header {
-    padding-bottom: 6px;
+    padding-bottom: 4px;
   }
   .panel-list.collapsed .type-counters {
     display: none !important;
   }
-
-  .panel-form.collapsed {
-    max-height: 50px !important;
-    min-height: 50px !important;
+  .panel-list.collapsed .filter-box {
+    display: none !important;
   }
-  .panel-form.collapsed .panel-header {
-    padding-bottom: 6px;
+  .panel-list.collapsed .requests-list {
+    display: none !important;
+  }
+
+  /* Когда форма СВЁРНУТА — список занимает больше места */
+  .panel-form.collapsed {
+    max-height: 44px !important;
+    min-height: 44px !important;
+    flex: 0 0 auto !important;
+  }
+  .panel-form.collapsed #request-form {
+    display: none !important;
+  }
+
+  /* Если оба свернуты — даём им равную высоту */
+  .panel-list.collapsed.panel-form.collapsed {
+    max-height: 44px !important;
+    min-height: 44px !important;
   }
 
   .panel-header {
@@ -827,21 +857,21 @@ select option { background: #12141f; color: var(--text-main); }
   }
 }
 
+/* Для очень маленьких экранов */
 @media (max-width: 480px) {
   .panel-list {
-    max-height: 30vh !important;
-    min-height: 40px !important;
+    max-height: 35vh !important;
+    min-height: 38px !important;
   }
   .panel-form {
-    min-height: 55vh !important;
-    max-height: 65vh !important;
+    min-height: 150px !important;
   }
   .panel-list.collapsed {
-    max-height: 40px !important;
-    min-height: 40px !important;
+    max-height: 38px !important;
+    min-height: 38px !important;
   }
   .panel-form.collapsed {
-    max-height: 40px !important;
-    min-height: 40px !important;
+    max-height: 38px !important;
+    min-height: 38px !important;
   }
 }
