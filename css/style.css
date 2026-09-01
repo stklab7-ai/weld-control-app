@@ -694,27 +694,45 @@ select option { background: #12141f; color: var(--text-main); }
     flex: 1;
   }
 
-  /* Панель списка — может уменьшаться */
+  /* Панель списка — по умолчанию 40% */
   .panel-list {
-    flex: 0 0 auto !important;
+    flex: 0 0 40% !important;
     max-height: 40vh !important;
     min-height: 44px !important;
     transition: all 0.3s ease;
   }
 
-  /* Панель формы — занимает всё остальное место */
+  /* Панель формы — по умолчанию 60% */
   .panel-form {
-    flex: 1 1 auto !important;
+    flex: 0 0 60% !important;
     min-height: 200px !important;
-    max-height: none !important;
+    max-height: 60vh !important;
     transition: all 0.3s ease;
   }
 
-  /* Когда список СВЁРНУТ — форма занимает ВСЁ место */
-  .panel-list.collapsed {
+  /* ===== КОГДА ФОРМА СВЁРНУТА — СПИСОК ЗАНИМАЕТ ВСЁ МЕСТО ===== */
+  .panel-form.collapsed {
+    flex: 0 0 44px !important;
     max-height: 44px !important;
     min-height: 44px !important;
-    flex: 0 0 auto !important;
+  }
+  .panel-form.collapsed #request-form {
+    display: none !important;
+  }
+
+  /* Когда форма свернута — список растягивается на всё свободное место */
+  .panel-form.collapsed + .panel-list,
+  .panel-form.collapsed ~ .panel-list {
+    flex: 1 1 auto !important;
+    max-height: none !important;
+    min-height: 200px !important;
+  }
+
+  /* ===== КОГДА СПИСОК СВЁРНУТ — ФОРМА ЗАНИМАЕТ ВСЁ МЕСТО ===== */
+  .panel-list.collapsed {
+    flex: 0 0 44px !important;
+    max-height: 44px !important;
+    min-height: 44px !important;
   }
   .panel-list.collapsed .panel-header {
     padding-bottom: 4px;
@@ -729,20 +747,11 @@ select option { background: #12141f; color: var(--text-main); }
     display: none !important;
   }
 
-  /* Когда форма СВЁРНУТА — список занимает больше места */
-  .panel-form.collapsed {
-    max-height: 44px !important;
-    min-height: 44px !important;
-    flex: 0 0 auto !important;
-  }
-  .panel-form.collapsed #request-form {
-    display: none !important;
-  }
-
-  /* Если оба свернуты — даём им равную высоту */
-  .panel-list.collapsed.panel-form.collapsed {
-    max-height: 44px !important;
-    min-height: 44px !important;
+  /* Когда список свернут — форма растягивается на всё свободное место */
+  .panel-list.collapsed + .panel-form {
+    flex: 1 1 auto !important;
+    min-height: 200px !important;
+    max-height: none !important;
   }
 
   .panel-header {
@@ -860,18 +869,34 @@ select option { background: #12141f; color: var(--text-main); }
 /* Для очень маленьких экранов */
 @media (max-width: 480px) {
   .panel-list {
+    flex: 0 0 35% !important;
     max-height: 35vh !important;
     min-height: 38px !important;
   }
   .panel-form {
+    flex: 0 0 65% !important;
     min-height: 150px !important;
-  }
-  .panel-list.collapsed {
-    max-height: 38px !important;
-    min-height: 38px !important;
+    max-height: 65vh !important;
   }
   .panel-form.collapsed {
+    flex: 0 0 38px !important;
     max-height: 38px !important;
     min-height: 38px !important;
+  }
+  .panel-list.collapsed {
+    flex: 0 0 38px !important;
+    max-height: 38px !important;
+    min-height: 38px !important;
+  }
+  .panel-form.collapsed + .panel-list,
+  .panel-form.collapsed ~ .panel-list {
+    flex: 1 1 auto !important;
+    max-height: none !important;
+    min-height: 150px !important;
+  }
+  .panel-list.collapsed + .panel-form {
+    flex: 1 1 auto !important;
+    min-height: 150px !important;
+    max-height: none !important;
   }
 }
