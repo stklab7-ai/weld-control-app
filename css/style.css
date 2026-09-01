@@ -661,7 +661,7 @@ select option { background: #12141f; color: var(--text-main); }
 }
 
 /* ==========================================================================
-   Адаптивность — МОБИЛЬНЫЕ ТЕЛЕФОНЫ (ФОРМА СВЕРХУ, СПИСОК СНИЗУ)
+   Адаптивность — МОБИЛЬНЫЕ ТЕЛЕФОНЫ (СПИСОК СВЕРХУ, ФОРМА СНИЗУ)
    ========================================================================== */
 @media (max-width: 768px) {
   .app-header {
@@ -695,20 +695,20 @@ select option { background: #12141f; color: var(--text-main); }
     display: flex;
   }
 
-  /* ===== ФОРМА — СВЕРХУ (order: 1) ===== */
-  .panel-form {
-    flex: 0 0 60% !important;
-    min-height: 200px !important;
-    max-height: 60vh !important;
-    transition: all 0.3s ease;
-    order: 1;
-  }
-
-  /* ===== СПИСОК — СНИЗУ (order: 2) ===== */
+  /* ===== СПИСОК — СВЕРХУ (order: 1) ===== */
   .panel-list {
     flex: 0 0 40% !important;
     max-height: 40vh !important;
     min-height: 44px !important;
+    transition: all 0.3s ease;
+    order: 1;
+  }
+
+  /* ===== ФОРМА — СНИЗУ (order: 2) ===== */
+  .panel-form {
+    flex: 0 0 60% !important;
+    min-height: 200px !important;
+    max-height: 60vh !important;
     transition: all 0.3s ease;
     order: 2;
   }
