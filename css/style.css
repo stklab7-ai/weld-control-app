@@ -661,7 +661,7 @@ select option { background: #12141f; color: var(--text-main); }
 }
 
 /* ==========================================================================
-   Адаптивность — МОБИЛЬНЫЕ ТЕЛЕФОНЫ
+   Адаптивность — МОБИЛЬНЫЕ ТЕЛЕФОНЫ (ФОРМА СВЕРХУ, СПИСОК СНИЗУ)
    ========================================================================== */
 @media (max-width: 768px) {
   .app-header {
@@ -695,25 +695,25 @@ select option { background: #12141f; color: var(--text-main); }
     display: flex;
   }
 
-  /* Панель списка — по умолчанию 40% */
-  .panel-list {
-    flex: 0 0 40% !important;
-    max-height: 40vh !important;
-    min-height: 44px !important;
-    transition: all 0.3s ease;
-    order: 1;
-  }
-
-  /* Панель формы — по умолчанию 60% */
+  /* ===== ФОРМА — СВЕРХУ (order: 1) ===== */
   .panel-form {
     flex: 0 0 60% !important;
     min-height: 200px !important;
     max-height: 60vh !important;
     transition: all 0.3s ease;
+    order: 1;
+  }
+
+  /* ===== СПИСОК — СНИЗУ (order: 2) ===== */
+  .panel-list {
+    flex: 0 0 40% !important;
+    max-height: 40vh !important;
+    min-height: 44px !important;
+    transition: all 0.3s ease;
     order: 2;
   }
 
-  /* ===== КОГДА ФОРМА СВЁРНУТА — СПИСОК РАСТЯГИВАЕТСЯ ВНИЗ ===== */
+  /* ===== КОГДА ФОРМА СВЁРНУТА — СПИСОК РАСТЯГИВАЕТСЯ ===== */
   .panel-form.collapsed {
     flex: 0 0 44px !important;
     max-height: 44px !important;
@@ -723,7 +723,6 @@ select option { background: #12141f; color: var(--text-main); }
     display: none !important;
   }
 
-  /* РАСТЯГИВАЕМ СПИСОК, КОГДА ФОРМА СВЁРНУТА */
   .panel-form.collapsed + .panel-list {
     flex: 1 1 auto !important;
     max-height: none !important;
@@ -749,7 +748,6 @@ select option { background: #12141f; color: var(--text-main); }
     display: none !important;
   }
 
-  /* РАСТЯГИВАЕМ ФОРМУ, КОГДА СПИСОК СВЁРНУТ */
   .panel-list.collapsed + .panel-form {
     flex: 1 1 auto !important;
     min-height: 200px !important;
