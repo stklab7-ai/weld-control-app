@@ -116,7 +116,12 @@
     <!-- ===== ПРАВАЯ ПАНЕЛЬ: форма заявки ===== -->
     <aside class="panel panel-form" id="panel-form">
       <div class="panel-header">
-        <h2 id="form-title"><i class="fa-solid fa-file-pen"></i> Новая заявка</h2>
+        <div style="display:flex;align-items:center;justify-content:space-between;width:100%;">
+          <h2 id="form-title"><i class="fa-solid fa-file-pen"></i> Новая заявка</h2>
+          <button class="panel-toggle" id="panel-form-toggle" title="Свернуть/развернуть форму">
+            <i class="fa-solid fa-chevron-up"></i>
+          </button>
+        </div>
       </div>
 
       <form id="request-form" autocomplete="off">

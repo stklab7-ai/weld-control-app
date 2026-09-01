@@ -602,7 +602,7 @@ select option { background: #12141f; color: var(--text-main); }
 @keyframes toast-out { to { opacity: 0; transform: translateX(40px); } }
 
 /* ==========================================================================
-   КНОПКА СВЁРТКИ ПАНЕЛИ СПИСКА
+   КНОПКИ СВЁРТКИ ПАНЕЛЕЙ
    ========================================================================== */
 .panel-toggle {
   background: rgba(255,255,255,0.05);
@@ -625,7 +625,7 @@ select option { background: #12141f; color: var(--text-main); }
   border-color: var(--neon-blue);
 }
 
-/* Свёрнутое состояние списка */
+/* ===== Свёрнутый список ===== */
 .panel-list.collapsed .requests-list {
   display: none !important;
 }
@@ -636,6 +636,18 @@ select option { background: #12141f; color: var(--text-main); }
   transform: rotate(180deg);
 }
 .panel-list.collapsed {
+  flex: 0 0 auto !important;
+  min-height: 60px !important;
+}
+
+/* ===== Свёрнутая форма ===== */
+.panel-form.collapsed #request-form {
+  display: none !important;
+}
+.panel-form.collapsed .panel-toggle i {
+  transform: rotate(180deg);
+}
+.panel-form.collapsed {
   flex: 0 0 auto !important;
   min-height: 60px !important;
 }
@@ -684,7 +696,6 @@ select option { background: #12141f; color: var(--text-main); }
     max-height: 60vh !important;
   }
 
-  /* Свёрнутый список на мобильных */
   .panel-list.collapsed {
     max-height: 50px !important;
     min-height: 50px !important;
@@ -694,6 +705,14 @@ select option { background: #12141f; color: var(--text-main); }
   }
   .panel-list.collapsed .type-counters {
     display: none !important;
+  }
+
+  .panel-form.collapsed {
+    max-height: 50px !important;
+    min-height: 50px !important;
+  }
+  .panel-form.collapsed .panel-header {
+    padding-bottom: 6px;
   }
 
   .panel-header {
@@ -818,6 +837,10 @@ select option { background: #12141f; color: var(--text-main); }
     max-height: 65vh !important;
   }
   .panel-list.collapsed {
+    max-height: 40px !important;
+    min-height: 40px !important;
+  }
+  .panel-form.collapsed {
     max-height: 40px !important;
     min-height: 40px !important;
   }

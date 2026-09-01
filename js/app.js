@@ -129,6 +129,18 @@ const App = (() => {
         icon.className = 'fa-solid fa-chevron-up';
       }
     });
+
+    // --- Кнопка свёртки формы ---
+    document.getElementById('panel-form-toggle').addEventListener('click', () => {
+      const panel = document.getElementById('panel-form');
+      panel.classList.toggle('collapsed');
+      const icon = document.querySelector('#panel-form-toggle i');
+      if (panel.classList.contains('collapsed')) {
+        icon.className = 'fa-solid fa-chevron-down';
+      } else {
+        icon.className = 'fa-solid fa-chevron-up';
+      }
+    });
   }
 
   /** Обработчик входа */
