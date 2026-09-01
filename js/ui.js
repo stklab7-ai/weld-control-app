@@ -80,7 +80,7 @@ function typeIconClass(type) {
   return map[type] || 'fa-tag';
 }
 
-/** Строит HTML одной карточки заявки (БЕЗ ХЕША, С ОПИСАНИЕМ И КОНТАКТОМ) */
+/** Строит HTML одной карточки заявки (ВМЕСТО ХЕША — ОПИСАНИЕ) */
 function buildCardHtml(request, isActive) {
   const statusClass = 'st-' + request.status.toLowerCase().replace(/\s+/g, '-');
   const isApproved = request.approved === true;
@@ -93,6 +93,7 @@ function buildCardHtml(request, isActive) {
     verdictHtml = `<span class="verdict rejected"><i class="fa-solid fa-xmark"></i> НЕ ГОДЕН</span>`;
   }
 
+  // Описание и контакт
   const description = request.description || '';
   const contactPerson = request.contactPerson || '';
 
