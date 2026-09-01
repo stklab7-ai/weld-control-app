@@ -661,7 +661,7 @@ select option { background: #12141f; color: var(--text-main); }
 }
 
 /* ==========================================================================
-   МОБИЛЬНАЯ АДАПТАЦИЯ
+   МОБИЛЬНАЯ АДАПТАЦИЯ (СПИСОК СВЕРХУ, ФОРМА СНИЗУ)
    ========================================================================== */
 @media (max-width: 768px) {
   .app-header {
@@ -694,24 +694,25 @@ select option { background: #12141f; color: var(--text-main); }
     height: 100%;
   }
 
-  /* Обе панели по 50% */
+  /* ===== СПИСОК — СВЕРХУ (order: 1) ===== */
   .panel-list {
     flex: 1 1 50% !important;
-    min-height: 40vh !important;
-    max-height: 50vh !important;
+    min-height: 30vh !important;
+    max-height: 60vh !important;
     min-width: 0 !important;
     order: 1;
   }
 
+  /* ===== ФОРМА — СНИЗУ (order: 2) ===== */
   .panel-form {
-    flex: 1 1 50% !important;
-    min-height: 40vh !important;
+    flex: 0 0 auto !important;
+    min-height: 200px !important;
     max-height: 50vh !important;
     min-width: 0 !important;
     order: 2;
   }
 
-  /* Когда форма свернута — список растягивается */
+  /* ===== КОГДА ФОРМА СВЁРНУТА — СПИСОК РАСТЯГИВАЕТСЯ ===== */
   .panel-form.collapsed {
     flex: 0 0 44px !important;
     min-height: 44px !important;
@@ -723,16 +724,16 @@ select option { background: #12141f; color: var(--text-main); }
     max-height: none !important;
   }
 
-  /* Когда список свернут — форма растягивается */
+  /* ===== КОГДА СПИСОК СВЁРНУТ — ФОРМА НЕ МЕНЯЕТСЯ ===== */
   .panel-list.collapsed {
     flex: 0 0 44px !important;
     min-height: 44px !important;
     max-height: 44px !important;
   }
   .panel-list.collapsed + .panel-form {
-    flex: 1 1 auto !important;
-    min-height: 60vh !important;
-    max-height: none !important;
+    flex: 0 0 auto !important;
+    min-height: 200px !important;
+    max-height: 50vh !important;
   }
 
   .panel-header {
@@ -850,17 +851,14 @@ select option { background: #12141f; color: var(--text-main); }
 /* Очень маленькие экраны */
 @media (max-width: 480px) {
   .panel-list {
-    min-height: 30vh !important;
-    max-height: 45vh !important;
+    min-height: 25vh !important;
+    max-height: 55vh !important;
   }
   .panel-form {
-    min-height: 30vh !important;
+    min-height: 150px !important;
     max-height: 45vh !important;
   }
   .panel-form.collapsed + .panel-list {
-    min-height: 50vh !important;
-  }
-  .panel-list.collapsed + .panel-form {
     min-height: 50vh !important;
   }
 }
