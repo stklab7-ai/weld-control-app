@@ -30,8 +30,6 @@ function cacheElements() {
   el.fControlType = document.getElementById('f-controlType');
   el.fDescription = document.getElementById('f-description');
   el.fContactPerson = document.getElementById('f-contactPerson');
-  el.fLatitude = document.getElementById('f-latitude');
-  el.fLongitude = document.getElementById('f-longitude');
   el.fStatus = document.getElementById('f-status');
   el.fCreatedAt = document.getElementById('f-createdAt');
   el.fAuthor = document.getElementById('f-author');
@@ -82,7 +80,7 @@ function typeIconClass(type) {
   return map[type] || 'fa-tag';
 }
 
-/** Строит HTML одной карточки заявки */
+/** Строит HTML одной карточки заявки (БЕЗ КООРДИНАТ) */
 function buildCardHtml(request, isActive) {
   const statusClass = 'st-' + request.status.toLowerCase().replace(/\s+/g, '-');
   const isApproved = request.approved === true;
@@ -114,7 +112,6 @@ function buildCardHtml(request, isActive) {
         ${verdictHtml}
       </div>
       <div class="rc-date"><i class="fa-regular fa-clock"></i>${formatDate(request.createdAt)} · ${escapeHtml(request.author)}</div>
-      <div class="rc-coords"><i class="fa-solid fa-location-dot"></i>${Number(request.latitude).toFixed(5)}, ${Number(request.longitude).toFixed(5)}</div>
       <div class="rc-actions">
         <button class="btn-vote btn-approve" data-id="${request.id}" type="button"><i class="fa-solid fa-check"></i> Годен</button>
         <button class="btn-vote btn-reject" data-id="${request.id}" type="button"><i class="fa-solid fa-xmark"></i> Не годен</button>
@@ -166,20 +163,18 @@ function updateCounters(requests) {
   if (el.cntCd) el.cntCd.textContent = requests.filter((r) => r.controlType === 'Цд').length;
 }
 
-/** Собирает текущие значения формы в объект */
+/** Собирает текущие значения формы в объект (БЕЗ КООРДИНАТ) */
 function getFormData() {
   return {
     objectName: el.fObjectName.value.trim(),
     controlType: el.fControlType.value,
     description: el.fDescription.value.trim(),
     contactPerson: el.fContactPerson.value.trim(),
-    latitude: parseFloat(el.fLatitude.value),
-    longitude: parseFloat(el.fLongitude.value),
     status: el.fStatus.value,
   };
 }
 
-/** Проверяет валидность формы (КООРДИНАТЫ НЕОБЯЗАТЕЛЬНЫ) */
+/** Проверяет валидность формы */
 function validateForm(data) {
   if (!data.objectName) {
     return { valid: false, message: 'Укажите название объекта' };
@@ -196,8 +191,6 @@ function fillForm(request) {
   el.fControlType.value = request.controlType;
   el.fDescription.value = request.description || '';
   el.fContactPerson.value = request.contactPerson || '';
-  el.fLatitude.value = request.latitude || '';
-  el.fLongitude.value = request.longitude || '';
   el.fStatus.value = request.status;
   el.fCreatedAt.value = formatDate(request.createdAt);
   el.fAuthor.value = request.author;
@@ -207,19 +200,9 @@ function fillForm(request) {
   el.btnCancelEdit.style.display = 'flex';
 }
 
-/** Устанавливает координаты в форме */
-function setFormCoords(lat, lng) {
-  if (lat !== undefined && lng !== undefined) {
-    el.fLatitude.value = lat.toFixed(6);
-    el.fLongitude.value = lng.toFixed(6);
-  }
-}
-
 /** Сбрасывает форму в режим "новая заявка" */
 function resetForm(author) {
   el.form.reset();
-  el.fLatitude.value = '';
-  el.fLongitude.value = '';
   el.fCreatedAt.value = '—';
   el.fAuthor.value = author || '—';
   el.fStatus.value = 'Новая';
@@ -330,7 +313,6 @@ export const UI = {
   getFormData,
   validateForm,
   fillForm,
-  setFormCoords,
   resetForm,
   getFilters,
   highlightCard,

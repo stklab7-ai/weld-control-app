@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Сварочный контроль — Подача заявок</title>
 
 <!-- Firebase Import Map -->
@@ -53,11 +53,9 @@
       </div>
     </div>
     <div class="header-right">
-      <!-- Поиск -->
       <button class="header-btn" id="btn-search-toggle" title="Поиск">
         <i class="fa-solid fa-magnifying-glass"></i>
       </button>
-      <!-- Экспорт -->
       <button class="header-btn" id="btn-export" title="Экспорт JSON">
         <i class="fa-solid fa-file-export"></i>
       </button>
@@ -73,7 +71,7 @@
     </div>
   </header>
 
-  <!-- ===== Строка поиска (скрыта по умолчанию) ===== -->
+  <!-- ===== Строка поиска ===== -->
   <div class="search-bar" id="search-bar">
     <i class="fa-solid fa-magnifying-glass"></i>
     <input type="text" id="search-input" placeholder="Поиск по объекту...">
@@ -84,9 +82,14 @@
   <main class="app-main">
 
     <!-- ===== ЛЕВАЯ ПАНЕЛЬ: список заявок ===== -->
-    <aside class="panel panel-list">
+    <aside class="panel panel-list" id="panel-list">
       <div class="panel-header">
-        <h2><i class="fa-solid fa-list-check"></i> Заявки на контроль</h2>
+        <div style="display:flex;align-items:center;justify-content:space-between;width:100%;">
+          <h2><i class="fa-solid fa-list-check"></i> Заявки на контроль</h2>
+          <button class="panel-toggle" id="panel-toggle" title="Свернуть/развернуть список">
+            <i class="fa-solid fa-chevron-up"></i>
+          </button>
+        </div>
         <div class="type-counters" id="type-counters">
           <span class="tc tc-vik" data-type="Вик"><i class="fa-solid fa-eye"></i> <b id="cnt-vik">0</b></span>
           <span class="tc tc-uzk" data-type="Узк"><i class="fa-solid fa-wave-square"></i> <b id="cnt-uzk">0</b></span>
@@ -111,7 +114,7 @@
     </aside>
 
     <!-- ===== ПРАВАЯ ПАНЕЛЬ: форма заявки ===== -->
-    <aside class="panel panel-form">
+    <aside class="panel panel-form" id="panel-form">
       <div class="panel-header">
         <h2 id="form-title"><i class="fa-solid fa-file-pen"></i> Новая заявка</h2>
       </div>
@@ -140,17 +143,6 @@
         <div class="form-group">
           <label for="f-contactPerson"><i class="fa-solid fa-id-card"></i> Контактное лицо</label>
           <input type="text" id="f-contactPerson" placeholder="ФИО ответственного">
-        </div>
-
-        <div class="form-row">
-          <div class="form-group half">
-            <label for="f-latitude"><i class="fa-solid fa-location-dot"></i> Широта</label>
-            <input type="number" id="f-latitude" step="0.000001" placeholder="—">
-          </div>
-          <div class="form-group half">
-            <label for="f-longitude"><i class="fa-solid fa-location-dot"></i> Долгота</label>
-            <input type="number" id="f-longitude" step="0.000001" placeholder="—">
-          </div>
         </div>
 
         <div class="form-group">

@@ -117,6 +117,18 @@ const App = (() => {
 
     // --- Экспорт JSON ---
     document.getElementById('btn-export').addEventListener('click', handleExport);
+
+    // --- Кнопка свёртки списка ---
+    document.getElementById('panel-toggle').addEventListener('click', () => {
+      const panel = document.getElementById('panel-list');
+      panel.classList.toggle('collapsed');
+      const icon = document.querySelector('#panel-toggle i');
+      if (panel.classList.contains('collapsed')) {
+        icon.className = 'fa-solid fa-chevron-down';
+      } else {
+        icon.className = 'fa-solid fa-chevron-up';
+      }
+    });
   }
 
   /** Обработчик входа */
@@ -184,14 +196,6 @@ const App = (() => {
     if (!validation.valid) {
       UI.showToast(validation.message, 'error');
       return;
-    }
-
-    // ===== ЕСЛИ КООРДИНАТЫ НЕ ЗАДАНЫ — СТАВИМ ПО УМОЛЧАНИЮ =====
-    if (isNaN(data.latitude) || data.latitude === 0 || data.latitude === null || data.latitude === undefined) {
-      data.latitude = 55.751244;
-    }
-    if (isNaN(data.longitude) || data.longitude === 0 || data.longitude === null || data.longitude === undefined) {
-      data.longitude = 37.618423;
     }
 
     try {

@@ -745,4 +745,109 @@ select option { background: #12141f; color: var(--text-main); }
     padding: 6px 10px;
     min-width: 140px;
   }
+  /* ==========================================================================
+   КНОПКА СВЁРТКИ ПАНЕЛИ СПИСКА
+   ========================================================================== */
+.panel-toggle {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--panel-border);
+  border-radius: 50%;
+  color: var(--text-dim);
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all var(--transition);
+  flex-shrink: 0;
+}
+.panel-toggle:hover {
+  background: rgba(0, 212, 255, 0.15);
+  color: var(--neon-blue);
+  border-color: var(--neon-blue);
+}
+
+/* Свёрнутое состояние списка */
+.panel-list.collapsed .requests-list {
+  display: none !important;
+}
+.panel-list.collapsed .filter-box {
+  display: none !important;
+}
+.panel-list.collapsed .panel-toggle i {
+  transform: rotate(180deg);
+}
+.panel-list.collapsed {
+  flex: 0 0 auto !important;
+  min-height: 60px !important;
+}
+
+/* ==========================================================================
+   МОБИЛЬНЫЕ УЛУЧШЕНИЯ
+   ========================================================================== */
+@media (max-width: 768px) {
+  /* Список занимает меньше места, форма больше */
+  .panel-list {
+    flex: 0 0 auto !important;
+    max-height: 40vh !important;
+    min-height: 50px !important;
+  }
+  .panel-form {
+    flex: 1 1 auto !important;
+    min-height: 50vh !important;
+    max-height: 60vh !important;
+  }
+
+  /* Свёрнутый список на мобильных */
+  .panel-list.collapsed {
+    max-height: 50px !important;
+    min-height: 50px !important;
+  }
+  .panel-list.collapsed .panel-header {
+    padding-bottom: 6px;
+  }
+  .panel-list.collapsed .type-counters {
+    display: none !important;
+  }
+
+  /* Форма занимает больше места */
+  .panel-form {
+    flex: 1 1 auto !important;
+    min-height: 50vh !important;
+    max-height: 60vh !important;
+  }
+
+  /* Кнопка "Создать" больше */
+  .btn-primary {
+    font-size: 14px !important;
+    padding: 10px 16px !important;
+  }
+
+  /* Отступ снизу для безопасной зоны на iPhone */
+  #app {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .app-main {
+    padding-bottom: 8px;
+  }
+}
+
+/* Для очень маленьких экранов */
+@media (max-width: 480px) {
+  .panel-list {
+    max-height: 30vh !important;
+    min-height: 40px !important;
+  }
+  .panel-form {
+    min-height: 55vh !important;
+    max-height: 65vh !important;
+  }
+  .panel-list.collapsed {
+    max-height: 40px !important;
+    min-height: 40px !important;
+  }
+
 }
