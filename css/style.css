@@ -633,9 +633,7 @@ select option { background: #12141f; color: var(--text-main); }
   border-color: var(--neon-blue);
 }
 
-/* ==========================================================================
-   СВЁРНУТЫЕ СОСТОЯНИЯ (десктоп)
-   ========================================================================== */
+/* ===== Свёрнутый список ===== */
 .panel-list.collapsed .requests-list {
   display: none !important;
 }
@@ -650,6 +648,7 @@ select option { background: #12141f; color: var(--text-main); }
   min-height: 60px !important;
 }
 
+/* ===== Свёрнутая форма ===== */
 .panel-form.collapsed #request-form {
   display: none !important;
 }
@@ -714,7 +713,7 @@ select option { background: #12141f; color: var(--text-main); }
     order: 2;
   }
 
-  /* ===== КОГДА ФОРМА СВЁРНУТА — СПИСОК ЗАНИМАЕТ ВСЁ МЕСТО ===== */
+  /* ===== КОГДА ФОРМА СВЁРНУТА — СПИСОК РАСТЯГИВАЕТСЯ ВНИЗ ===== */
   .panel-form.collapsed {
     flex: 0 0 44px !important;
     max-height: 44px !important;
@@ -724,14 +723,14 @@ select option { background: #12141f; color: var(--text-main); }
     display: none !important;
   }
 
-  /* Когда форма свернута — список растягивается */
-  .panel-form.collapsed ~ .panel-list {
+  /* РАСТЯГИВАЕМ СПИСОК, КОГДА ФОРМА СВЁРНУТА */
+  .panel-form.collapsed + .panel-list {
     flex: 1 1 auto !important;
     max-height: none !important;
     min-height: 200px !important;
   }
 
-  /* ===== КОГДА СПИСОК СВЁРНУТ — ФОРМА ЗАНИМАЕТ ВСЁ МЕСТО ===== */
+  /* ===== КОГДА СПИСОК СВЁРНУТ — ФОРМА РАСТЯГИВАЕТСЯ ===== */
   .panel-list.collapsed {
     flex: 0 0 44px !important;
     max-height: 44px !important;
@@ -750,8 +749,8 @@ select option { background: #12141f; color: var(--text-main); }
     display: none !important;
   }
 
-  /* Когда список свернут — форма растягивается */
-  .panel-list.collapsed ~ .panel-form {
+  /* РАСТЯГИВАЕМ ФОРМУ, КОГДА СПИСОК СВЁРНУТ */
+  .panel-list.collapsed + .panel-form {
     flex: 1 1 auto !important;
     min-height: 200px !important;
     max-height: none !important;
@@ -891,12 +890,12 @@ select option { background: #12141f; color: var(--text-main); }
     max-height: 38px !important;
     min-height: 38px !important;
   }
-  .panel-form.collapsed ~ .panel-list {
+  .panel-form.collapsed + .panel-list {
     flex: 1 1 auto !important;
     max-height: none !important;
     min-height: 150px !important;
   }
-  .panel-list.collapsed ~ .panel-form {
+  .panel-list.collapsed + .panel-form {
     flex: 1 1 auto !important;
     min-height: 150px !important;
     max-height: none !important;
